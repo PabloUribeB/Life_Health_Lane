@@ -226,7 +226,7 @@ forval i = 1/10 {
 }	
 
 forval i = 1/10 {
-	replace max1 = max1 - round_number/2 if max1 - round_number/2 > max
+	replace max1 = max1 - round_number / 2 if max1 - round_number / 2 > max
 }
 
 replace round_number = round_number/4 if round_number > (max1-min1)*0.4
