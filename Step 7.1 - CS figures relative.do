@@ -116,7 +116,7 @@ replace coef = 0 if mi(coef) & dist < 0
 replace ci_lower = 0 if ci_lower == . & dist < 0
 replace ci_upper = 0 if ci_upper == . & dist < 0
 
-g dist2 = dist		
+gen dist2 = dist		
 
 * Relevant periods	
 drop if (dist < -2 & pila_outcome == 0)
