@@ -103,7 +103,7 @@ preserve
 	duplicates drop
 	expand 14
 	
-	bys outcome occupation gender pila_outcome: g dist = _n - 5
+	bys outcome occupation gender pila_outcome: gen dist = _n - 5
 	drop if dist == -1
 	
 	tempfile temp
