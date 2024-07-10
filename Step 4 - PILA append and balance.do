@@ -126,6 +126,15 @@ foreach ocupacion in $profesiones {
 	gen 	posgrado_salud_term 	= posgrado_salud
 	gen		p_cotizaciones_0		= (nro_cotizaciones_0 > 1)
 	
+	* Age at the graduation date
+	gen		year_pila				= yofd(dofh(fecha_pila))
+	gen 	year_birth 				= yofd(birth)
+	gen		edad					= fecha_pila - birth
+	replace	edad					= . if (year_grado != year_pila)
+	
+	bys personabasicaid: ereplace edad = min(edad)
+	drop year_pila year_birth
+	
 	* Identify occupation
 	gen 	rethus_codigoperfilpre1 = "`ocupacion'"
 

@@ -47,7 +47,7 @@ set scheme white_tableau
 
 global rips_rows " "service" "consul" "proce" "urg_np" "hosp_np" "urg" "hosp" "service_mental" "service_mental2" "pregnancy" "Total" "
 
-global pila_rows " "sal_dias_cot_0" "pila_salario_r_0" "l_pila_salario_r_0" "nro_cotizaciones_0" "formal" "posgrado_salud"  "posgrado_rethus" "posgrado_rethus_acum" "p_cotizaciones_0" "pila_independientes" "pila_dependientes" "Total" "
+global pila_rows " "sal_dias_cot_0" "pila_salario_r_0" "l_pila_salario_r_0" "nro_cotizaciones_0" "formal" "posgrado_salud"  "posgrado_rethus" "posgrado_rethus_acum" "p_cotizaciones_0" "pila_independientes" "pila_dependientes" "edad" "Total" "
 
 global columns " "Mean_all" "SD_all" "Min_all" "Max_all" "Mean_male" "SD_male" "Min_male" "Max_male" "Mean_female" "SD_female" "Min_female" "Max_female" "
 
@@ -314,10 +314,10 @@ rename 	(posgrado_salud posgrado_rethus posgrado_rethus_acum p_cotizaciones_0 	/
 		pila_independientes pila_dependientes)									///
 		(postgrad postrethus postaccum simuljobs selfemploy dependent)
 		
-global d_outcomes 	postgrad postrethus postaccum simuljobs selfemploy dependent
+global d_outcomes 	postgrad postrethus postaccum simuljobs selfemploy dependent edad
 
 					
-mat define 		PILA = J(12,12,.)
+mat define 		PILA = J(13,12,.)
 mat colnames 	PILA = $columns
 mat rownames 	PILA = $pila_rows
 
@@ -333,7 +333,7 @@ preserve
 			local maxim "r(max)"
 			local calcu ": display %11.0fc PILA[`f',1]"
 		}
-		else if inlist("`outcome'", "daysworked", "numberjobs"){
+		else if inlist("`outcome'", "daysworked", "numberjobs", "edad"){
 			local maxim "r(max)"
 			local calcu ": display %5.2fc PILA[`f',1]"
 		}
@@ -356,7 +356,7 @@ preserve
 	}
 		
 	qui sum personabasicaid, det
-	mat PILA[12,1] = r(N)
+	mat PILA[13,1] = r(N)
 
 restore
 
@@ -372,7 +372,7 @@ preserve
 			local maxim "r(max)"
 			local calcu ": display %11.0fc PILA[`f',5]"
 		}
-		else if inlist("`outcome'", "daysworked", "numberjobs"){
+		else if inlist("`outcome'", "daysworked", "numberjobs", "edad"){
 			local maxim "r(max)"
 			local calcu ": display %5.2fc PILA[`f',5]"
 		}
@@ -395,7 +395,7 @@ preserve
 	}
 		
 	qui sum personabasicaid, det
-	mat PILA[12,5] = r(N)
+	mat PILA[13,5] = r(N)
 
 restore
 
@@ -411,7 +411,7 @@ preserve
 			local maxim "r(max)"
 			local calcu ": display %11.0fc PILA[`f',9]"
 		}
-		else if inlist("`outcome'", "daysworked", "numberjobs"){
+		else if inlist("`outcome'", "daysworked", "numberjobs", "edad"){
 			local maxim "r(max)"
 			local calcu ": display %5.2fc PILA[`f',9]"
 		}
@@ -434,7 +434,7 @@ preserve
 	}
 		
 	qui sum personabasicaid, det
-	mat PILA[12,9] = r(N)
+	mat PILA[13,9] = r(N)
 
 restore
 
@@ -501,8 +501,26 @@ export excel using "${tables}\wage_ranges.xlsx", firstrow(variables) sheet("All"
 
 
 ****************************************************************************
-**#						3.2. Wage by age
+**#						3.2. Age descriptives
 ****************************************************************************
+
+* Age at the graduation figure
+use "${data}\Individual_balanced_all_PILA.dta", clear
+drop if (rethus_sexo != 1 & rethus_sexo != 2)
+
+collapse (max) edad, by(year_grado rethus_codigoperfilpre1)
+
+tw 	(connected edad year_grado if rethus_codigoperfilpre1 == "P01", color(gs11)   m(O) msize(medsmall))			///
+	(connected edad year_grado if rethus_codigoperfilpre1 == "P03", color(gs9)    m(S) msize(medsmall))			///
+	(connected edad year_grado if rethus_codigoperfilpre1 == "P07", color(gs6)    m(D) msize(medsmall))			///
+	(connected edad year_grado if rethus_codigoperfilpre1 == "P09", color(gs1)    m(T) msize(medsmall)),		///
+	xtitle(Year) ytitle(Age at graduation date)	ylab(#10) xlab(2011(1)2017)										///
+	legend(order(4 "Dentists" 3 "Physicians" 2 "Nurses" 1 "Bacteriologists") position(6) col(4))				///
+	graphregion(fcolor(white))
+	
+graph export "${figures}\Age_at_graddate.pdf", replace	
+
+* Outcomes by age
 use "${data}\Individual_balanced_all_PILA.dta", clear
 drop if (rethus_sexo != 1 & rethus_sexo != 2)
 

@@ -29,17 +29,9 @@ clear all
 set more off
 
 
-if "`c(username)'" == "Pablo Uribe" {
-	global tables	"C:\Users\Pablo Uribe\Dropbox\EH_Papers\Education Paper\Tables"
-	global figures	"C:\Users\Pablo Uribe\Dropbox\EH_Papers\Education Paper\Figures"
-
-}
-
-else {
-	global tables	"C:\Users\danie\Dropbox\EH_Papers\Education Paper\Tables"
-	global figures	"C:\Users\danie\Dropbox\EH_Papers\Education Paper\Figures"
-	
-}
+global user     "`c(username)'"
+global tables	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Tables"
+global figures	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Figures"
 
 /*
 if "`c(hostname)'" == "SM201439"{
@@ -85,18 +77,23 @@ gen rips_outcome	=  (outcome == "urg"					| outcome == "urg_np"					| 				///
 keep if pila_outcome == 1 | rips_outcome == 1
 
 * Conversion factor PPA
-g ppa = 1322.15
+gen ppa = 1322.15
 
 foreach var in pila_salario_r_0 pila_salario_r_0_np pila_salario_r_max_0 pila_salario_r_0_posg pila_salario_r_0_npos {
 	
-	replace coef 		= coef / ppa 		if outcome == "`var'"
-	replace stderr 		= stderr / ppa 	if outcome == "`var'"
-	replace ci_lower	= ci_lower / ppa 	if outcome == "`var'"
-	replace ci_upper 	= ci_upper / ppa 	if outcome == "`var'"
-	replace mean	 	= mean / ppa 		if outcome == "`var'"
+	replace coef 		= coef/ppa 		if outcome == "`var'"
+	replace stderr 		= stderr/ppa 	if outcome == "`var'"
+	replace ci_lower	= ci_lower/ppa 	if outcome == "`var'"
+	replace ci_upper 	= ci_upper/ppa 	if outcome == "`var'"
+	replace mean	 	= mean/ppa 		if outcome == "`var'"
 	
 }
 drop ppa
+
+* Transform to relative
+foreach var in coef stderr ci_lower ci_upper {
+	replace `var' = `var' * 100 / mean
+}
 
 		
 * Balance for variables with non-estimated periods
@@ -106,7 +103,7 @@ preserve
 	duplicates drop
 	expand 14
 	
-	bys outcome occupation gender pila_outcome: g dist = _n - 5
+	bys outcome occupation gender pila_outcome: gen dist = _n - 5
 	drop if dist == -1
 	
 	tempfile temp
@@ -115,11 +112,11 @@ preserve
 restore
 
 merge m:1 dist outcome occupation gender pila_outcome using `temp', nogen
-replace coef = 0 if coef == . & dist < 0
+replace coef = 0 if mi(coef) & dist < 0
 replace ci_lower = 0 if ci_lower == . & dist < 0
 replace ci_upper = 0 if ci_upper == . & dist < 0
 
-g dist2 = dist		
+gen dist2 = dist		
 
 * Relevant periods	
 drop if (dist < -2 & pila_outcome == 0)
@@ -131,7 +128,7 @@ drop if (dist >  9 & pila_outcome == 1)
 sort outcome occupation gender dist
 
 * Separete professions in figures 			
-g dist1 = dist - 0.1 		if (occupation == "P03" & pila_outcome == 0)
+gen dist1 = dist - 0.1 		if (occupation == "P03" & pila_outcome == 0)
 replace dist1 = dist - 0.2 	if (occupation == "P07" & pila_outcome == 0)
 replace dist1 = dist - 0.3	if (occupation == "P09" & pila_outcome == 0)
 replace dist1 = dist 		if (occupation == "P01" & pila_outcome == 0)
@@ -160,7 +157,7 @@ bys outcome: egen max = max(ci_upper)
 bys outcome: egen min = min(ci_lower)
 
 tostring max min, gen(max_s min_s) force
-g negative = 1 if substr(min_s,1,1) == "-" //All mins are negative
+gen negative = 1 if substr(min_s,1,1) == "-" //All mins are negative
 drop negative
 
 replace max_s = subinstr(max_s, "-", "", 1)
@@ -171,10 +168,10 @@ replace min_s = subinstr(min_s, ".", "0.", 1) if substr(min_s, 1, 1) == "."
 foreach var in max min {
 			
 	forval i = 1(1)12 {			
-		g `var'c_`i' = substr(`var'_s,`i',1)			
+		gen `var'c_`i' = substr(`var'_s,`i',1)			
 	}
 	
-	g decimal = 0		
+	gen decimal = 0		
 	forval i = 11(-1)3 {
 		local j = `i'+1
 		replace decimal = `i' if `var'c_`i' == "0" & `var'c_`j' != "0" 		
@@ -184,7 +181,7 @@ foreach var in max min {
 	replace decimal = 1 if `var'c_3 != "0" & `var'c_1 == "0"
 	replace decimal = 0 if `var'c_1 != "0"
 		
-	g unit = 0
+	gen unit = 0
 	forval i = 12(-1)2 {
 		replace unit = `i'-1 if `var'c_`i' == ""
 		replace unit = `i'-1 if `var'c_`i' == "."
@@ -194,7 +191,7 @@ foreach var in max min {
 	replace unit = unit - 1 if unit != 0
 	
 	drop `var'c*
-	g round_number = 1
+	gen round_number = 1
 	replace round_number = round_number*(10^unit)
 	replace round_number = round_number/(10^decimal) if unit == 0
 	replace round_number = round_number
@@ -213,7 +210,7 @@ forval i = 1/10 {
 }	
 
 forval i = 1/10 {
-	replace min1 = min1 + round_number/2 if min1 + round_number/2 < min
+	replace min1 = min1 + round_number / 2 if min1 + round_number / 2 < min
 }
 
 forval i = 1/10 {
@@ -221,14 +218,14 @@ forval i = 1/10 {
 }	
 
 forval i = 1/10 {
-	replace max1 = max1 - round_number/2 if max1 - round_number/2 > max
+	replace max1 = max1 - round_number / 2 if max1 - round_number / 2 > max
 }
 
-replace round_number = round_number/4 if round_number > (max1-min1)*0.4
-replace round_number = round_number/2 if round_number > (max1-min1)*0.2
-replace round_number = round_number*2 if round_number < (max1-min1)*0.1
-replace round_number = round_number*4 if round_number < (max1-min1)*0.05
-replace round_number = round_number*8 if round_number < (max1-min1)*0.02
+replace round_number = round_number / 4 if round_number > (max1 - min1) * 0.4
+replace round_number = round_number / 2 if round_number > (max1 - min1) * 0.2
+replace round_number = round_number * 2 if round_number < (max1 - min1) * 0.1
+replace round_number = round_number * 4 if round_number < (max1 - min1) * 0.05
+replace round_number = round_number * 8 if round_number < (max1 - min1) * 0.02
 
 drop max-round_number_min
 rename (round_number min1 max1) (change min max)
@@ -307,7 +304,7 @@ foreach outcome in `outcomes' {
 				graphregion(fcolor(white))																												
 																				
 			
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.pdf", replace
 	
 		restore
 		
@@ -393,7 +390,7 @@ foreach outcome in `outcomes' {
 								6 "Nurses" 		"Mean: `mean_P03'" 	5 "Bacteriologists" "Mean: `mean_P01'") position(6) col(4))							///
 				graphregion(fcolor(white)) graphr(margin(t+5))
 				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.pdf", replace
 		
 		restore
 		
@@ -460,7 +457,7 @@ foreach outcome in `outcomes' {
 				legend(order(4 "Dentists" 	"Mean: `mean_P09'" 	3 "Physicians" "Mean: `mean_P07'") position(6) col(4))									///
 				graphregion(fcolor(white)) graphr(margin(t+5))
 				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.pdf", replace
 		
 		restore
 		
@@ -485,12 +482,12 @@ rename meanfemale m_f
 rename stderrmale e_m
 rename stderrfemale e_f
 
-g mean = m_m-m_f
-g coef = x_m-x_f
-g sed  = sqrt((e_m^2)+(e_f^2))
+gen mean = m_m - m_f
+gen coef = x_m - x_f
+gen sed  = sqrt((e_m ^ 2) + (e_f ^ 2))
 
-g ci_lower = coef - 1.96*sed
-g ci_upper = coef + 1.96*sed
+gen ci_lower = coef - 1.96*sed
+gen ci_upper = coef + 1.96*sed
 
 drop x_m x_f m_m m_f e_m e_f
 rename dist2 dist
@@ -562,7 +559,7 @@ foreach outcome in `outcomes' {
 				graphregion(fcolor(white))																												
 																				
 			
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.pdf", replace
 	
 }
 	
@@ -622,7 +619,7 @@ foreach outcome in `outcomes' {
 								6 "Nurses" 		"Mean: `mean_P03'" 	5 "Bacteriologists" "Mean: `mean_P01'") position(6) col(4))							///
 				graphregion(fcolor(white))																												
 				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.pdf", replace
 		
 }	
 	
@@ -661,7 +658,7 @@ foreach outcome in `outcomes' {
 				legend(order(4 "Dentists" 	"Mean: `mean_P09'" 	3 "Physicians" "Mean: `mean_P07'") position(6) col(4))									///
 				graphregion(fcolor(white))																												
 				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.pdf", replace
 		
 }
 
@@ -705,7 +702,7 @@ foreach outcome in `outcomes' {
 							2 "Nurses" 		1 "Bacteriologists")						///
 							position(6) col(4))
 	
-	graph export "${figures}\Old professionals\\`outcome'.png", replace
+	graph export "${figures}\Old professionals\\`outcome'_relative.png", replace
 
 }
 
