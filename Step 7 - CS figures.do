@@ -84,6 +84,20 @@ gen rips_outcome	=  (outcome == "urg"					| outcome == "urg_np"					| 				///
 						
 keep if pila_outcome == 1 | rips_outcome == 1
 
+* Conversion factor PPA
+g ppa = 1322.15
+
+foreach var in pila_salario_r_0 pila_salario_r_0_np pila_salario_r_max_0 pila_salario_r_0_posg pila_salario_r_0_npos {
+	
+	replace coef 		= coef/ppa 		if outcome == "`var'"
+	replace stderr 		= stderr/ppa 	if outcome == "`var'"
+	replace ci_lower	= ci_lower/ppa 	if outcome == "`var'"
+	replace ci_upper 	= ci_upper/ppa 	if outcome == "`var'"
+	replace mean	 	= mean/ppa 		if outcome == "`var'"
+	
+}
+drop ppa
+
 		
 * Balance for variables with non-estimated periods
 preserve
