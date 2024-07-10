@@ -100,7 +100,7 @@ drop ppa
 
 * Transform to relative
 foreach var in coef stderr ci_lower ci_upper {
-	replace `var' = `var'*100/mean
+	replace `var' = `var' * 100 / mean
 }
 
 		
