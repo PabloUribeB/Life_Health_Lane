@@ -210,7 +210,7 @@ forval i = 1/10 {
 }	
 
 forval i = 1/10 {
-	replace min1 = min1 + round_number/2 if min1 + round_number/2 < min
+	replace min1 = min1 + round_number / 2 if min1 + round_number / 2 < min
 }
 
 forval i = 1/10 {
