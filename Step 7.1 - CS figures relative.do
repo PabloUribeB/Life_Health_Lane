@@ -112,7 +112,7 @@ preserve
 restore
 
 merge m:1 dist outcome occupation gender pila_outcome using `temp', nogen
-replace coef = 0 if coef == . & dist < 0
+replace coef = 0 if mi(coef) & dist < 0
 replace ci_lower = 0 if ci_lower == . & dist < 0
 replace ci_upper = 0 if ci_upper == . & dist < 0
 
