@@ -128,7 +128,7 @@ drop if (dist >  9 & pila_outcome == 1)
 sort outcome occupation gender dist
 
 * Separete professions in figures 			
-g dist1 = dist - 0.1 		if (occupation == "P03" & pila_outcome == 0)
+gen dist1 = dist - 0.1 		if (occupation == "P03" & pila_outcome == 0)
 replace dist1 = dist - 0.2 	if (occupation == "P07" & pila_outcome == 0)
 replace dist1 = dist - 0.3	if (occupation == "P09" & pila_outcome == 0)
 replace dist1 = dist 		if (occupation == "P01" & pila_outcome == 0)
