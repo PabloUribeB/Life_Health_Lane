@@ -191,7 +191,7 @@ foreach var in max min {
 	replace unit = unit - 1 if unit != 0
 	
 	drop `var'c*
-	g round_number = 1
+	gen round_number = 1
 	replace round_number = round_number*(10^unit)
 	replace round_number = round_number/(10^decimal) if unit == 0
 	replace round_number = round_number
