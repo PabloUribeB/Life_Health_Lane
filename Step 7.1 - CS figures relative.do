@@ -157,7 +157,7 @@ bys outcome: egen max = max(ci_upper)
 bys outcome: egen min = min(ci_lower)
 
 tostring max min, gen(max_s min_s) force
-g negative = 1 if substr(min_s,1,1) == "-" //All mins are negative
+gen negative = 1 if substr(min_s,1,1) == "-" //All mins are negative
 drop negative
 
 replace max_s = subinstr(max_s, "-", "", 1)
