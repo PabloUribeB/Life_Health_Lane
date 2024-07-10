@@ -171,7 +171,7 @@ foreach var in max min {
 		gen `var'c_`i' = substr(`var'_s,`i',1)			
 	}
 	
-	g decimal = 0		
+	gen decimal = 0		
 	forval i = 11(-1)3 {
 		local j = `i'+1
 		replace decimal = `i' if `var'c_`i' == "0" & `var'c_`j' != "0" 		
