@@ -29,17 +29,9 @@ clear all
 set more off
 
 
-if "`c(username)'" == "Pablo Uribe" {
-	global tables	"C:\Users\Pablo Uribe\Dropbox\EH_Papers\Education Paper\Tables"
-	global figures	"C:\Users\Pablo Uribe\Dropbox\EH_Papers\Education Paper\Figures"
-
-}
-
-else {
-	global tables	"C:\Users\danie\Dropbox\EH_Papers\Education Paper\Tables"
-	global figures	"C:\Users\danie\Dropbox\EH_Papers\Education Paper\Figures"
-	
-}
+global user     "`c(username)'"
+global tables	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Tables"
+global figures	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Figures"
 
 /*
 if "`c(hostname)'" == "SM201439"{
