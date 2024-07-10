@@ -482,12 +482,12 @@ rename meanfemale m_f
 rename stderrmale e_m
 rename stderrfemale e_f
 
-g mean = m_m-m_f
-g coef = x_m-x_f
-g sed  = sqrt((e_m^2)+(e_f^2))
+gen mean = m_m - m_f
+gen coef = x_m - x_f
+gen sed  = sqrt((e_m ^ 2) + (e_f ^ 2))
 
-g ci_lower = coef - 1.96*sed
-g ci_upper = coef + 1.96*sed
+gen ci_lower = coef - 1.96*sed
+gen ci_upper = coef + 1.96*sed
 
 drop x_m x_f m_m m_f e_m e_f
 rename dist2 dist
