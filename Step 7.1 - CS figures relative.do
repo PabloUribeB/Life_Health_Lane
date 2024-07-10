@@ -168,7 +168,7 @@ replace min_s = subinstr(min_s, ".", "0.", 1) if substr(min_s, 1, 1) == "."
 foreach var in max min {
 			
 	forval i = 1(1)12 {			
-		g `var'c_`i' = substr(`var'_s,`i',1)			
+		gen `var'c_`i' = substr(`var'_s,`i',1)			
 	}
 	
 	g decimal = 0		
