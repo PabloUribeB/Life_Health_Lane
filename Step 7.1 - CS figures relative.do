@@ -181,7 +181,7 @@ foreach var in max min {
 	replace decimal = 1 if `var'c_3 != "0" & `var'c_1 == "0"
 	replace decimal = 0 if `var'c_1 != "0"
 		
-	g unit = 0
+	gen unit = 0
 	forval i = 12(-1)2 {
 		replace unit = `i'-1 if `var'c_`i' == ""
 		replace unit = `i'-1 if `var'c_`i' == "."
