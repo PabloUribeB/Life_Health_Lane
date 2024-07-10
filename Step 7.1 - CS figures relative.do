@@ -221,11 +221,11 @@ forval i = 1/10 {
 	replace max1 = max1 - round_number / 2 if max1 - round_number / 2 > max
 }
 
-replace round_number = round_number/4 if round_number > (max1-min1)*0.4
-replace round_number = round_number/2 if round_number > (max1-min1)*0.2
-replace round_number = round_number*2 if round_number < (max1-min1)*0.1
-replace round_number = round_number*4 if round_number < (max1-min1)*0.05
-replace round_number = round_number*8 if round_number < (max1-min1)*0.02
+replace round_number = round_number / 4 if round_number > (max1 - min1) * 0.4
+replace round_number = round_number / 2 if round_number > (max1 - min1) * 0.2
+replace round_number = round_number * 2 if round_number < (max1 - min1) * 0.1
+replace round_number = round_number * 4 if round_number < (max1 - min1) * 0.05
+replace round_number = round_number * 8 if round_number < (max1 - min1) * 0.02
 
 drop max-round_number_min
 rename (round_number min1 max1) (change min max)
