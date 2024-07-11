@@ -53,6 +53,11 @@ global columns " "Mean_all" "SD_all" "Min_all" "Max_all" "Mean_male" "SD_male" "
 
 global ocupaciones Bact Nurse Phys Dent
 
+
+local rips_row : list sizeof global(rips_rows) // Count number of outcomes for # rows
+local pila_row : list sizeof global(pila_rows) // Count number of outcomes for # rows
+local column   : list sizeof global(columns)   // Count number of outcomes for # rows
+
 cap log close
 log using "${pc}\Proyectos\Banrep research\Returns to Health Sector\Logs\Step_5.smcl", replace
 
@@ -170,7 +175,7 @@ rename 	(urg_np hosp_np service_mental service_mental2) ///
 global d_outcomes 	service consul proce urgnp hospnp urg hosp 	///
 					mentaldiag mentalEAD pregnancy
 
-mat define 		RIPS = J(11,12,.)
+mat define 		RIPS = J(`rips_row', `column', .)
 mat colnames 	RIPS = $columns
 mat rownames 	RIPS = $rips_rows	
 				
@@ -317,7 +322,7 @@ rename 	(posgrado_salud posgrado_rethus posgrado_rethus_acum p_cotizaciones_0 	/
 global d_outcomes 	postgrad postrethus postaccum simuljobs selfemploy dependent edad
 
 					
-mat define 		PILA = J(13,12,.)
+mat define 		PILA = J(`pila_row', `column', .)
 mat colnames 	PILA = $columns
 mat rownames 	PILA = $pila_rows
 
