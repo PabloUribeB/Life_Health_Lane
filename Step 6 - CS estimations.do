@@ -341,6 +341,7 @@ foreach ocupacion in $ocupaciones {
 global outcomes sal_dias_cot_0 pila_salario_r_0 pila_salario_r_max_0 			///
 				p_cotizaciones_0 posgrado_salud
 
+local replace replace
 foreach ocupacion in $ocupaciones {
 
 	foreach outcome in $outcomes {

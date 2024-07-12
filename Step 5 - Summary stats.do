@@ -544,7 +544,7 @@ save "${tables}\wage_ages", replace
 ****************************************************************************
 **#						3.3. Additional descriptives
 ****************************************************************************
-
+/*
 * Number of professionals in 2021
 use "${data}\Individual_balanced_all_PILA.dta", clear
 drop if (rethus_sexo != 1 & rethus_sexo != 2)
@@ -589,6 +589,6 @@ g ocupacion  = (rethus_codigoperfilpre1 == "P01" | rethus_codigoperfilpre1 == "P
 				rethus_codigoperfilpre1 == "P07" | rethus_codigoperfilpre1 == "P09" )
 g main_sample = one_degree*ocupacion
 sum main_sample
-
+*/
 
 log close
