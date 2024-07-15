@@ -532,11 +532,6 @@ drop if (rethus_sexo != 1 & rethus_sexo != 2)
 global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 			///
 				p_cotizaciones_0 pila_independientes pila_salario_r_max_0
 
-replace fecha_pila = yofd(dofh(fecha_pila))
-replace birth = yofd(birth)		
-				
-g 	edad = fecha_pila - birth
-
 collapse (mean) ${outcomes}, by(edad rethus_codigoperfilpre1)
 save "${tables}\wage_ages", replace
 

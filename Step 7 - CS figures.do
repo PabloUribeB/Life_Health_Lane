@@ -84,9 +84,13 @@ gen rips_outcome	=  (outcome == "urg"					| outcome == "urg_np"					| 				///
 						
 keep if pila_outcome == 1 | rips_outcome == 1
 
-* Conversion factor PPA
+* Conversion factor PPA GDP base
 * Source: https://datos.bancomundial.org/indicator/PA.NUS.PPP?locations=CO
-g ppa = 1322.15
+*g ppa = 1322.15
+
+* Conversion factor PPA private consumption base
+* Source: https://datos.bancomundial.org/indicator/PA.NUS.PRVT.PP?locations=CO
+g ppa = 1464.41
 
 foreach var in pila_salario_r_0 pila_salario_r_0_np pila_salario_r_max_0 pila_salario_r_0_posg pila_salario_r_0_npos {
 	
