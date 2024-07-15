@@ -477,11 +477,11 @@ preserve
 	g graduates = 1
 
 	g w_range = .
-	replace w_range = 1 if (pila_salario_r <= mw)
-	replace w_range = 2 if (pila_salario_r >  mw		& pila_salario_r <= (mw * 2))
-	replace w_range = 3 if (pila_salario_r > (mw * 2) 	& pila_salario_r <= (mw * 3))
-	replace w_range = 4 if (pila_salario_r > (mw * 3)  	& pila_salario_r <= (mw * 5))
-	replace w_range = 5 if (pila_salario_r > (mw * 5))
+	replace w_range = 1 if (pila_salario_r_0 <= mw)
+	replace w_range = 2 if (pila_salario_r_0 >  mw			& pila_salario_r_0 <= (mw * 2))
+	replace w_range = 3 if (pila_salario_r_0 > (mw * 2) 	& pila_salario_r_0 <= (mw * 3))
+	replace w_range = 4 if (pila_salario_r_0 > (mw * 3)  	& pila_salario_r_0 <= (mw * 5))
+	replace w_range = 5 if (pila_salario_r_0 > (mw * 5))
 	
 	collapse (sum) graduates, by(rethus_codigoperfilpre1 fecha_pila w_range)
 	format fecha_pila %th
@@ -492,11 +492,11 @@ restore
 
 
 * Count people by salary range
-gen w_range_1 = (pila_salario_r <= mw)
-gen w_range_2 = (pila_salario_r >  mw		& pila_salario_r <= (mw * 2))
-gen w_range_3 = (pila_salario_r > (mw * 2)  & pila_salario_r <= (mw * 3))
-gen w_range_4 = (pila_salario_r > (mw * 3)  & pila_salario_r <= (mw * 5))
-gen w_range_5 = (pila_salario_r > (mw * 5))
+gen w_range_1 = (pila_salario_r_0 <= mw)
+gen w_range_2 = (pila_salario_r_0 >  mw		& pila_salario_r_0 <= (mw * 2))
+gen w_range_3 = (pila_salario_r_0 > (mw * 2)  & pila_salario_r_0 <= (mw * 3))
+gen w_range_4 = (pila_salario_r_0 > (mw * 3)  & pila_salario_r_0 <= (mw * 5))
+gen w_range_5 = (pila_salario_r_0 > (mw * 5))
 
 collapse (sum) w_range*, by(rethus_codigoperfilpre1 fecha_pila)
 sort fecha_pila
