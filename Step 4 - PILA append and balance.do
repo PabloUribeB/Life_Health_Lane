@@ -129,7 +129,7 @@ foreach ocupacion in $profesiones {
 	* Age at the graduation date
 	gen		year_pila				= yofd(dofh(fecha_pila))
 	gen 	year_birth 				= yofd(birth)
-	gen		edad					= fecha_pila - birth
+	gen		edad					= year_pila - year_birth
 	replace	edad					= . if (year_grado != year_pila)
 	
 	bys personabasicaid: ereplace edad = min(edad)
