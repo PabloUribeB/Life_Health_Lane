@@ -23,10 +23,8 @@
 clear all
 set more off
 
-
-global user     "`c(username)'"
-global tables	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Tables"
-global figures	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Figures"
+global tables	"~\Dropbox\EH_Papers\Education Paper\Tables"
+global figures	"~\Dropbox\EH_Papers\Education Paper\Figures"
 
 
 set scheme white_tableau
@@ -56,9 +54,13 @@ gen rips_outcome	=  (outcome == "urg"					| outcome == "urg_np"					| 				///
 						
 keep if pila_outcome == 1 | rips_outcome == 1
 
-* Conversion factor PPA
+* Conversion factor PPA GDP base
 * Source: https://datos.bancomundial.org/indicator/PA.NUS.PPP?locations=CO
-gen ppa = 1322.15
+*g ppa = 1322.15
+
+* Conversion factor PPA private consumption base
+* Source: https://datos.bancomundial.org/indicator/PA.NUS.PRVT.PP?locations=CO
+gen ppa = 1464.41
 
 foreach var in pila_salario_r_0 pila_salario_r_0_np pila_salario_r_max_0 pila_salario_r_0_posg pila_salario_r_0_npos {
 	
@@ -212,9 +214,8 @@ drop max-round_number_min
 rename (round_number min1 max1) (change min max)
 compress		
 
-* Exclude nurses and bacteriologist for postgraduate outcomes
-drop if	(outcome 	== "posgrado_salud" | outcome 		== "pila_salario_r_0_npos" | outcome == "pila_salario_r_0_posg") & ///
-		(occupation == "P01" 			| occupation 	== "P03")		
+* Exclude outcomes with no sense
+drop if	outcome == "posgrado_salud"	| outcome == "pregnancy"
 		
 		
 ****************************************************************************
@@ -275,17 +276,17 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(medsmall)),		///
 				xlabel(-2(1)4, nogrid labsize(small))	 																							 	///
-				ylabel(`ylabel', angle(h) format(%10.3fc) labsize(small))																				///
+				ylabel(`ylabel', angle(h) format(%10.0fc) labsize(small))																				///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
 				xtitle("Years from graduation")																											///
-				ytitle("Point estimate")																												///
+				ytitle("Relative effect (%)")																											///
 				legend(order(	8 "Dentists" 	"Mean: `mean_P09'" 	7 "Physicians" "Mean: `mean_P07'"													///
 								6 "Nurses" 		"Mean: `mean_P03'" 	5 "Bacteriologists" "Mean: `mean_P01'") position(6) col(4))							///
 				graphregion(fcolor(white))																												
 																				
 			
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.png", replace
 	
 		restore
 		
@@ -301,7 +302,7 @@ levelsof outcome if pila_outcome == 1, local(outcomes)
 levelsof gender, local(genders)
 
 *Tester
-local outcomes = "pila_salario_r_0_npos" "pila_salario_r_0_posg"
+*local outcomes = "pila_salario_r_0_npos" "pila_salario_r_0_posg"
 
 foreach outcome in `outcomes' {
 	
@@ -315,7 +316,7 @@ foreach outcome in `outcomes' {
 	}
 	else {		
 		local d = "4.3"
-		local e = "7.2"
+		local e = "7.0"
 	}
 
 	foreach gender in `genders'  {
@@ -366,79 +367,12 @@ foreach outcome in `outcomes' {
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
 				xtitle("Semesters from graduation")																										///
-				ytitle("Point estimate")																												///
+				ytitle("Relative effect (%)")																											///
 				legend(order(	8 "Dentists" 	"Mean: `mean_P09'" 	7 "Physicians" "Mean: `mean_P07'"													///
 								6 "Nurses" 		"Mean: `mean_P03'" 	5 "Bacteriologists" "Mean: `mean_P01'") position(6) col(4))							///
 				graphregion(fcolor(white)) graphr(margin(t+5))
 				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.pdf", replace
-		
-		restore
-		
-	}	
-	
-}
-
-
-*Postgraduates
-levelsof gender, local(genders)
-* "posgrado_salud" "pila_salario_r_0_posg" "pila_salario_r_0_npos"
-local outcomes = "posgrado_salud pila_salario_r_0_posg pila_salario_r_0_npos"
-
-foreach outcome in `outcomes' {
-
-	if "`outcome'" == "pila_salario_r_0_posg" | "`outcome'" == "pila_salario_r_0_npos" {		
-		local d = "7.0"
-		local e = "14.0"
-	}
-	else {		
-		local d = "1.0"
-		local e = "7.2"
-	}
-				
-	foreach gender in `genders'  {
-		
-		preserve	
-		
-		keep if gender == "`gender'"
-							
-		qui sum mean if (outcome =="`outcome'" & occupation =="P07")
-		local mean_P07: dis %`d'fc r(mean)
-		local mean_P07: dis strtrim("`mean_P07'")
-		qui sum mean if (outcome =="`outcome'" & occupation =="P09")
-		local mean_P09: dis %`d'fc r(mean)
-		local mean_P09: dis strtrim("`mean_P09'")
-		
-		qui sum min if (outcome =="`outcome'")
-		local min = r(mean)
-		qui sum max if (outcome =="`outcome'")
-		local max = r(mean)
-		qui sum change if (outcome =="`outcome'")
-		local change = r(mean)
-		
-		if gender == "male" | gender == "female" {
-			local ylabel = "`min'(`change')`max'"
-			local yscale = "yscale(range(`min' `max'))"
-		}
-		else {			
-			local ylabel = "#10"	
-			local yscale = ""
-		}			
-			
-		twoway 	(rspike ci_lower ci_upper dist 	if (occupation == "P07" & outcome == "`outcome'"), lcolor(gs6)  color(gs6)  lp(solid))					///
-				(rspike ci_lower ci_upper dist 	if (occupation == "P09" & outcome == "`outcome'"), lcolor(gs1)  color(gs1)  lp(solid))					///
-				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
-				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)9, nogrid labsize(vsmall))																									///
-				ylabel(`ylabel', angle(h) format(%`e'fc) labsize(small)) `yscale'																		///
-				xline(-1, lcolor(gs10))																													///
-				yline(0, lcolor(gs10))																													///
-				xtitle("Semesters from graduation")																										///
-				ytitle("Point estimate")																												///
-				legend(order(4 "Dentists" 	"Mean: `mean_P09'" 	3 "Physicians" "Mean: `mean_P07'") position(6) col(4))									///
-				graphregion(fcolor(white)) graphr(margin(t+5))
-				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.png", replace
 		
 		restore
 		
@@ -530,17 +464,17 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(medsmall)),		///
 				xlabel(-2(1)4, nogrid labsize(small))	 																							 	///
-				ylabel(#10, angle(h) format(%9.3fc) labsize(small))																						///
+				ylabel(#10, angle(h) format(%9.0fc) labsize(small))																						///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
 				xtitle("Years from graduation")																											///
-				ytitle("Point estimate")																												///
+				ytitle("Relative effect (%)")																											///
 				legend(order(	8 "Dentists" 	"Mean: `mean_P09'" 	7 "Physicians" "Mean: `mean_P07'"													///
 								6 "Nurses" 		"Mean: `mean_P03'" 	5 "Bacteriologists" "Mean: `mean_P01'") position(6) col(4))							///
 				graphregion(fcolor(white))																												
 																				
 			
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.png", replace
 	
 }
 	
@@ -566,7 +500,7 @@ foreach outcome in `outcomes' {
 	}
 	else {		
 		local d = "5.3"	
-		local e = "5.2"	
+		local e = "5.0"	
 	}
 					
 		qui sum mean if (outcome =="`outcome'" & occupation =="P01")
@@ -595,96 +529,16 @@ foreach outcome in `outcomes' {
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
 				xtitle("Semesters from graduation")																										///
-				ytitle("Point estimate")																												///
+				ytitle("Relative effect (%)")																											///
 				legend(order(	8 "Dentists" 	"Mean: `mean_P09'" 	7 "Physicians" "Mean: `mean_P07'"													///
 								6 "Nurses" 		"Mean: `mean_P03'" 	5 "Bacteriologists" "Mean: `mean_P01'") position(6) col(4))							///
 				graphregion(fcolor(white))																												
 				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.pdf", replace
+		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.png", replace
 		
 }	
-	
-
-* Postgraduates
-local outcomes = "posgrado_salud pila_salario_r_0_posg pila_salario_r_0_npos"
-
-foreach outcome in `outcomes' {
-
-	if "`outcome'" == "pila_salario_r_0_posg" | "`outcome'" == "pila_salario_r_0_npos" {		
-		local d = "7.0"
-		local e = "14.0"
-	}
-	else {		
-		local d = "1.0"
-		local e = "5.2"
-	}
-	
-		qui sum mean if (outcome =="`outcome'" & occupation =="P07")
-		local mean_P07: dis %`d'fc r(mean)
-		local mean_P07: dis strtrim("`mean_P07'")
-		qui sum mean if (outcome =="`outcome'" & occupation =="P09")
-		local mean_P09: dis %`d'fc r(mean)
-		local mean_P09: dis strtrim("`mean_P09'")
-			
-		twoway 	(rspike ci_lower ci_upper dist 	if (occupation == "P07" & outcome == "`outcome'"), lcolor(gs6)  color(gs6)  lp(solid))					///
-				(rspike ci_lower ci_upper dist 	if (occupation == "P09" & outcome == "`outcome'"), lcolor(gs1)  color(gs1)  lp(solid))					///
-				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
-				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)9, nogrid labsize(vsmall))																									///
-				ylabel(#10, angle(h) format(%`e'fc) labsize(small))																						///
-				xline(-1, lcolor(gs10))																													///
-				yline(0, lcolor(gs10))																													///
-				xtitle("Semesters from graduation")																										///
-				ytitle("Point estimate")																												///
-				legend(order(4 "Dentists" 	"Mean: `mean_P09'" 	3 "Physicians" "Mean: `mean_P07'") position(6) col(4))									///
-				graphregion(fcolor(white))																												
-				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.pdf", replace
-		
-}
 
 
-****************************************************************************
-**#						5. Extra descriptives
-****************************************************************************
 
-use "${tables}\wage_ages", clear
-rename edad dist
-keep if dist >= 18 & dist <= 67
-
-local outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 		///
-				p_cotizaciones_0 pila_independientes pila_salario_r_max_0
-				
-foreach outcome in `outcomes' {
-
-	if "`outcome'" == "pila_salario_r_0" | "`outcome'" == "pila_salario_r_max_0" {		
-		local e = "12.0"
-	} 
-	else if "`outcome'" == "sal_dias_cot_0" {	
-		local e = "12.0"
-	}
-	else {		
-		local e = "5.2"	
-	}
-
-	twoway 	(line `outcome' dist if (rethus_codigoperfilpre1 == "P01"), lc(gs11))		///
-			(line `outcome' dist if (rethus_codigoperfilpre1 == "P03"), lc(gs9) )		///
-			(line `outcome' dist if (rethus_codigoperfilpre1 == "P07"), lc(gs6) )		///
-			(line `outcome' dist if (rethus_codigoperfilpre1 == "P09"), lc(gs1) ),		///
-			xlabel(18(1)67, nogrid labsize(vsmall))	 						 			///
-			ylabel(#10, angle(h) format(%`e'fc) labsize(small))							///
-			xline(24, lcolor(gs10))														///
-			xline(47, lcolor(gs10))														///
-			xline(52, lcolor(gs10))														///
-			xtitle("Age")																///
-			ytitle("`outcome'")															///
-			graphregion(fcolor(white))													///
-			legend(order(	4 "Dentists" 	3 "Physicians"								///
-							2 "Nurses" 		1 "Bacteriologists")						///
-							position(6) col(4))
-	
-	graph export "${figures}\Old professionals\\`outcome'_relative.png", replace
-
-}
 
 

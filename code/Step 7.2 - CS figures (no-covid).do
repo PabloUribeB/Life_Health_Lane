@@ -23,11 +23,8 @@
 clear all
 set more off
 
-
-global user "`c(username)'"
-
-global tables	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Tables"
-global figures	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Figures"
+global tables	"~\Dropbox\EH_Papers\Education Paper\Tables"
+global figures	"~\Dropbox\EH_Papers\Education Paper\Figures"
 
 
 set scheme white_tableau
@@ -382,8 +379,7 @@ foreach outcome in `outcomes' {
 
 *Postgraduates
 levelsof gender, local(genders)
-* "posgrado_salud" "pila_salario_r_0_posg" "pila_salario_r_0_npos"
-local outcomes = "posgrado_salud"
+local outcomes = "posgrado_salud pila_salario_r_0_posg pila_salario_r_0_npos"
 
 foreach outcome in `outcomes' {
 

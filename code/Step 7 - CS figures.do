@@ -23,10 +23,8 @@
 clear all
 set more off
 
-global user "`c(username)'"
-
-global tables	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Tables"
-global figures	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Figures"
+global tables	"~\Dropbox\EH_Papers\Education Paper\Tables"
+global figures	"~\Dropbox\EH_Papers\Education Paper\Figures"
 
 
 set scheme white_tableau
@@ -56,7 +54,11 @@ gen rips_outcome	=  (outcome == "urg"					| outcome == "urg_np"					| 				///
 						
 keep if pila_outcome == 1 | rips_outcome == 1
 
-* Conversion factor PPA
+* Conversion factor PPA GDP base
+* Source: https://datos.bancomundial.org/indicator/PA.NUS.PPP?locations=CO
+*g ppa = 1322.15
+
+* Conversion factor PPA private consumption base
 * Source: https://datos.bancomundial.org/indicator/PA.NUS.PRVT.PP?locations=CO
 gen ppa = 1464.41
 
@@ -294,7 +296,7 @@ levelsof outcome if pila_outcome == 1, local(outcomes)
 levelsof gender, local(genders)
 
 *Tester
-local outcomes = "pila_salario_r_0_npos" "pila_salario_r_0_posg"
+*local outcomes = "pila_salario_r_0_npos" "pila_salario_r_0_posg"
 
 foreach outcome in `outcomes' {
 	
@@ -375,7 +377,6 @@ foreach outcome in `outcomes' {
 
 *Postgraduates
 levelsof gender, local(genders)
-* "posgrado_salud" "pila_salario_r_0_posg" "pila_salario_r_0_npos"
 local outcomes = "posgrado_salud pila_salario_r_0_posg pila_salario_r_0_npos"
 
 foreach outcome in `outcomes' {
@@ -676,7 +677,7 @@ foreach outcome in `outcomes' {
 							2 "Nurses" 		1 "Bacteriologists")						///
 							position(6) col(4))
 	
-	graph export "${figures}\Old professionals\\`outcome'.png", replace
+	*graph export "${figures}\Old professionals\\`outcome'.png", replace
 
 }
 
