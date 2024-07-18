@@ -49,7 +49,7 @@ global cp_outcomes 	daysworked wage // PILA
 global dp_outcomes 	postgrad edad   // PILA
 
 * Table 2 rownames
-global t2_outcomes " "Monthly days worked""Formal real monthly wage" "Health-related postgrad. enrollment" "Age at graduation date" "Accessed a health service""Medical consultations" "Medical procedures" "ER visits" "Hospitalizations" "Received mental diagnosis" "
+global t2_outcomes " "Monthly days worked" "Formal real monthly wage" "Health-related postgrad. enrollment" "Age at graduation date" "Accessed a health service" "Medical consultations" "Medical procedures" "ER visits" "Hospitalizations" "Received mental diagnosis" "
 
 set scheme white_tableau
 
@@ -401,17 +401,6 @@ foreach outcome in $d_outcomes {
 
 
 **** Table 2
-<<<<<<< Updated upstream
-
-labvars $cp_outcomes $dp_outcomes $d_outcomes "Monthly days worked" ///
-"Formal real monthly wage" "Health-related postgrad. enrollment"    ///
-"Age at graduation date" "Accessed a health service"                ///
-"Medical consultations" "Medical procedures" "ER visits"            ///
-"Hospitalizations" "Received mental diagnosis"
-
-
-=======
->>>>>>> Stashed changes
 texdoc init "${tables}/table2.tex", replace force	
 
 tex \begin{tabular}{lcccccc}
@@ -427,7 +416,7 @@ tex \midrule
 
 local i = 1
 local j = 1
-foreach var of global cp_outcomes dp_outcomes d_outcomes{
+foreach var of global t2_outcomes {
 	
 	if `i' == 1       local panel "tex \multicolumn{9}{l}{\textit{Panel A: PILA (2008-2022)}} \\"
     else if `i' == 5  local panel "tex \multicolumn{9}{l}{\textit{Panel B: RIPS (2009-2022)}} \\"
@@ -436,10 +425,8 @@ foreach var of global cp_outcomes dp_outcomes d_outcomes{
     if `j' == 4       local space "\addlinespace"
     else              local space
     
-    local lb`var' : variable label `var'
-    
     `panel'
-	tex `lb`var'' & `m_`i'_1' & `sd_`i'_2' & `m_`i'_3' & `sd_`i'_4' & `m_`i'_5' & `sd_`i'_6' \\ `space'
+	tex `var' & `m_`i'_1' & `sd_`i'_2' & `m_`i'_3' & `sd_`i'_4' & `m_`i'_5' & `sd_`i'_6' \\ `space'
 	
     local ++i
 	local ++j
@@ -578,7 +565,7 @@ foreach outcome in `outcomes' {
 							2 "Nurses" 		1 "Bacteriologists")						///
 							position(6) col(4))
 	
-	graph export "${figures}\\`outcome'_by_age.png", replace
+	graph export "${figures}\Outcomes by age\\`outcome'_by_age.png", replace
 
 }
 
