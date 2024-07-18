@@ -567,7 +567,7 @@ foreach outcome in `outcomes' {
 							2 "Nurses" 		1 "Bacteriologists")						///
 							position(6) col(4))
 	
-	graph export "${figures}\\`outcome'_by_age.png", replace
+	graph export "${figures}\Outcomes by age\\`outcome'_by_age.png", replace
 
 }
 
