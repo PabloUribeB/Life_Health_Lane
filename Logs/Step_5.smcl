@@ -1,0 +1,1000 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Logs\Step_5.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}18 Jul 2024, 15:28:25
+{txt}
+{com}. 
+. 
+. ****************************************************************************
+. **#                                             1. RETHUS
+. ****************************************************************************
+. use "${c -(}data{c )-}\master_rethus.dta", clear
+{txt}
+{com}. 
+. gen profesionales = 1
+{txt}
+{com}. 
+.         
+. * All
+. keep if inrange(year_grado, 2011, 2017)
+{txt}(251,563 observations deleted)
+
+{com}. drop if (rethus_sexo != 1 & rethus_sexo != 2)
+{txt}(88 observations deleted)
+
+{com}. 
+. 
+. * Graduates per year
+. tw      hist year_grado, freq disc xlab(2011(1)2017) barw(0.5) fcolor(gs13) ///
+> lcolor(gs11) xtitle("Year of graduation") ylabel(#10,format(%12.0fc))
+{res}{txt}
+{com}. graph export "${c -(}figures{c )-}\hist_graduates_sample.pdf", replace
+{txt}{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\hist_graduates_sample.pdf{rm}
+saved as
+PDF
+format
+{p_end}
+
+{com}.         
+. * Graduates per half (Figure 1)
+. replace fechapregrado = hofd(dofm(fechapregrado))
+{txt}(77,900 real changes made)
+
+{com}. format fechapregrado %th
+{txt}
+{com}. 
+. tw      hist fechapregrado, freq disc xlab(102(1)115) barw(0.5) fcolor(gs13) ///
+> lcolor(gs11) xtitle("Semester of graduation") ylabel(#10,format(%12.0fc)) xlab(, angle(45))
+{res}{txt}
+{com}. graph export "${c -(}figures{c )-}\hist_graduates_sample_half.pdf", replace
+{txt}{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\hist_graduates_sample_half.pdf{rm}
+saved as
+PDF
+format
+{p_end}
+
+{com}. 
+. 
+. * Calculate statistics
+. sum profesionales
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}     77,900           1           0          1          1
+{txt}
+{com}. local B_1_1 = strtrim("`: di %10.0fc r(N)'")
+{txt}
+{com}. local P_1_1 = "(" + strtrim("`:di %5.0f `B_1_1' / `B_1_1' * 100'") + "%)"
+{txt}
+{com}. 
+. sum profesionales if rethus_sexo == 1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}     23,275           1           0          1          1
+{txt}
+{com}. local B_2_1 = strtrim("`: di %10.0fc r(N)'")
+{txt}
+{com}. local P_2_1 = "(" + strtrim("`:di %5.2f `B_2_1' / `B_1_1' * 100'") + "%)"
+{txt}
+{com}. 
+. sum profesionales if rethus_sexo == 2
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}     54,625           1           0          1          1
+{txt}
+{com}. local B_3_1 = strtrim("`: di %10.0fc r(N)'")
+{txt}
+{com}. local P_3_1 = "(" + strtrim("`:di %5.2f `B_3_1' / `B_1_1' * 100'") + "%)"
+{txt}
+{com}. 
+. texresults3 using "${c -(}tables{c )-}\numbers.txt", texmacro(samplerethus)                       ///
+> result(`B_1_1') replace // Only for internal use. Comment for publication.
+{txt}
+{com}. 
+. 
+. replace rethus_codigoperfilpre1 = "Bact"        if rethus_codigoperfilpre1 == "P01"
+{txt}variable {bf}{res}rethus_codigoperfilpre1{sf}{txt} was {bf}{res}str3{sf}{txt} now {bf}{res}str4{sf}
+{txt}(4,849 real changes made)
+
+{com}. replace rethus_codigoperfilpre1 = "Phys"        if rethus_codigoperfilpre1 == "P07"
+{txt}(38,130 real changes made)
+
+{com}. replace rethus_codigoperfilpre1 = "Nurse"       if rethus_codigoperfilpre1 == "P03"
+{txt}variable {bf}{res}rethus_codigoperfilpre1{sf}{txt} was {bf}{res}str4{sf}{txt} now {bf}{res}str5{sf}
+{txt}(22,138 real changes made)
+
+{com}. replace rethus_codigoperfilpre1 = "Dent"        if rethus_codigoperfilpre1 == "P09"
+{txt}(12,783 real changes made)
+
+{com}. 
+. 
+. local f = 2
+{txt}
+{com}. foreach ocupacion in $ocupaciones {c -(}
+{txt}  2{com}.         
+.         sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'")
+{txt}  3{com}.         local B_1_`f' = strtrim("`: di %10.0fc r(N)'")
+{txt}  4{com}.         local P_1_`f' = "(" + strtrim("`:di %5.2f `B_1_`f'' / `B_1_1' * 100'") + "%)"
+{txt}  5{com}.         
+.         local mean    = r(N) * 100
+{txt}  6{com}.         texresults3 using "${c -(}tables{c )-}\numbers.txt", texmacro(mean`ocupacion')    ///
+>         result(`mean') round(0) unit append // Only for internal use. Comment for publication.
+{txt}  7{com}.         
+.         local ++f
+{txt}  8{com}.         
+. {c )-}
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}      4,849           1           0          1          1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}     22,138           1           0          1          1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}     38,130           1           0          1          1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}     12,783           1           0          1          1
+{txt}
+{com}. 
+. * Males
+. local f = 2
+{txt}
+{com}. foreach ocupacion in $ocupaciones {c -(}
+{txt}  2{com}.         
+.         sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'" & rethus_sexo == 1)
+{txt}  3{com}.         local B_2_`f' = strtrim("`: di %10.0fc r(N)'")
+{txt}  4{com}.         local P_2_`f' = "(" + strtrim("`:di %5.2f `B_2_`f'' / `B_1_1' * 100'") + "%)"
+{txt}  5{com}.         
+.         local ++f
+{txt}  6{com}.         
+. {c )-}
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}        761           1           0          1          1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}      2,773           1           0          1          1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}     16,243           1           0          1          1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}      3,498           1           0          1          1
+{txt}
+{com}. 
+. * Females
+. local f = 2
+{txt}
+{com}. foreach ocupacion in $ocupaciones {c -(}
+{txt}  2{com}.         
+.         sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'" & rethus_sexo == 2)
+{txt}  3{com}.         local B_3_`f' = strtrim("`: di %10.0fc r(N)'")
+{txt}  4{com}.         local P_3_`f' = "(" + strtrim("`:di %5.2f `B_3_`f'' / `B_1_1' * 100'") + "%)"
+{txt}  5{com}. 
+.         local ++f
+{txt}  6{com}.         
+. {c )-}
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}      4,088           1           0          1          1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}     19,365           1           0          1          1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}     21,887           1           0          1          1
+
+{txt}    Variable {c |}        Obs        Mean    Std. dev.       Min        Max
+{hline 13}{c +}{hline 57}
+profesiona~s {c |}{res}      9,285           1           0          1          1
+{txt}
+{com}. 
+. 
+. **** Table 1
+. 
+. texdoc init "${c -(}tables{c )-}/table1.tex", replace force       
+{res}{txt}(texdoc output file is Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\table1.tex)
+{res}{txt}
+{com}. 
+. tex \begin{c -(}tabular{c )-}{c -(}lccccc{c )-}
+{res}{txt}
+{com}. tex \toprule
+{res}{txt}
+{com}. 
+. tex & All professions & Bacteriologists & Nurses & Physicians & Dentists \\
+{res}{txt}
+{com}. tex \midrule
+{res}{txt}
+{com}. 
+. 
+. 
+. local i = 1
+{txt}
+{com}. local j = 1
+{txt}
+{com}. foreach var of global rethus_rows{c -(}
+{txt}  2{com}.         
+.         if mod(`i',2) == 1  local labrow "`var'"
+{txt}  3{com}.     else                local labrow
+{txt}  4{com}.     
+.     if `j' == 3         local space
+{txt}  5{com}.     else                local space "\addlinespace"
+{txt}  6{com}.     
+.         tex `labrow' & `B_`i'_1' & `B_`i'_2' & `B_`i'_3' & `B_`i'_4' & `B_`i'_5' \\
+{txt}  7{com}.     tex          & `P_`i'_1' & `P_`i'_2' & `P_`i'_3' & `P_`i'_4' & `P_`i'_5' \\ `space'
+{txt}  8{com}.         
+.     local ++i
+{txt}  9{com}.     local ++j
+{txt} 10{com}.         
+. {c )-}
+{res}{txt}
+{com}. 
+. tex \bottomrule
+{res}{txt}
+{com}. tex \end{c -(}tabular{c )-}
+{res}{txt}
+{com}. texdoc close
+{txt}(texdoc output written to {browse `"Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\table1.tex"':Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\table1.tex})
+{res}{txt}
+{com}. 
+.         
+. ****************************************************************************
+. **#                                             2. PILA
+. ****************************************************************************
+. 
+. use "${c -(}data{c )-}\Individual_balanced_all_PILA.dta", clear
+{txt}
+{com}. drop if (rethus_sexo != 1 & rethus_sexo != 2)
+{txt}(6,300 observations deleted)
+
+{com}. sort personabasicaid fecha_pila
+{txt}
+{com}. 
+. replace rethus_codigoperfilpre1 = "Bact"        if rethus_codigoperfilpre1 == "P01"
+{txt}variable {bf}{res}rethus_codigoperfilpre1{sf}{txt} was {bf}{res}str3{sf}{txt} now {bf}{res}str4{sf}
+{txt}(843,840 real changes made)
+
+{com}. replace rethus_codigoperfilpre1 = "Phys"        if rethus_codigoperfilpre1 == "P07"
+{txt}(4,712,880 real changes made)
+
+{com}. replace rethus_codigoperfilpre1 = "Nurse"       if rethus_codigoperfilpre1 == "P03"
+{txt}variable {bf}{res}rethus_codigoperfilpre1{sf}{txt} was {bf}{res}str4{sf}{txt} now {bf}{res}str5{sf}
+{txt}(2,339,910 real changes made)
+
+{com}. replace rethus_codigoperfilpre1 = "Dent"        if rethus_codigoperfilpre1 == "P09"
+{txt}(1,918,950 real changes made)
+
+{com}. 
+. drop year
+{txt}
+{com}. gen year = year(dofh(fecha_pila))
+{txt}
+{com}. 
+. keep if year == 2021
+{txt}(9,161,208 observations deleted)
+
+{com}. 
+. ** For internal use (comment for publication)
+.         qui sum pila_salario_r_0 if (rethus_codigoperfilpre1 == "Phys" & posgrado_rethus == 1)
+{txt}
+{com}. 
+.         qui sum pila_salario_r_0 if (rethus_codigoperfilpre1 == "Phys" & posgrado_clin == 1)
+{txt}
+{com}.         local mean: dis %15.0fc r(mean)
+{res}{txt}
+{com}.         dis as err "Physician with clinical: `mean'"
+{res}{err}Physician with clinical:      14,702,266
+{txt}
+{com}. 
+.         qui sum pila_salario_r_0 if (rethus_codigoperfilpre1 == "Phys" & posgrado_quir == 1)
+{txt}
+{com}.         local mean: dis %15.0fc r(mean)
+{res}{txt}
+{com}.         dis as err "Physician with surgical: `mean'"
+{res}{err}Physician with surgical:      16,354,402
+{txt}
+{com}. 
+.         qui sum pila_salario_r_0 if (rethus_codigoperfilpre1 == "Phys" & posgrado_otro == 1)
+{txt}
+{com}.         local mean: dis %15.0fc r(mean)
+{res}{txt}
+{com}.         dis as err "Physician with others: `mean'"
+{res}{err}Physician with others:      20,010,733
+{txt}
+{com}. 
+.         * Dentist with postgrad.
+.         qui sum pila_salario_r_0 if (rethus_codigoperfilpre1 == "Dent" & posgrado_rethus_acum == 1)
+{txt}
+{com}.         local mean: dis %15.0fc r(mean)
+{res}{txt}
+{com}.         dis as err "Dentist with postgrad: `mean'"
+{res}{err}Dentist with postgrad:       4,245,697
+{txt}
+{com}. 
+. ** End of internal use
+. 
+. 
+. * Subset
+. use if (year_grado >= 2011 & year_grado <= 2017) & (rethus_sexo == 1 | rethus_sexo == 2) ///
+>         using "${c -(}data{c )-}\Individual_balanced_all_PILA.dta", clear
+{txt}
+{com}. 
+. sort personabasicaid fecha_pila
+{txt}
+{com}. 
+. rename  (sal_dias_cot_0 pila_salario_r_0 posgrado_salud) (daysworked wage postgrad)
+{res}{txt}
+{com}. 
+. 
+. ** All sample
+. preserve
+{txt}
+{com}. 
+.         collapse (mean) $cp_outcomes (max) $dp_outcomes , by(personabasicaid)
+{res}{txt}
+{com}. 
+.     local f = 1
+{txt}
+{com}.         foreach outcome in $cp_outcomes $dp_outcomes {c -(}
+{txt}  2{com}. 
+.                 if inlist("`outcome'", "wage"){c -(}
+{txt}  3{com}.                         local mean  = strtrim("`:di %11.0fc r(mean)'")
+{txt}  4{com}.             local sd    = strtrim("`:di %11.0fc r(sd)'")
+{txt}  5{com}.             local nmean = strtrim("`:di %11.0fc r(mean)'")
+{txt}  6{com}.                 {c )-}
+{txt}  7{com}.                 else if inlist("`outcome'", "daysworked", "edad"){c -(}
+{txt}  8{com}.                         local mean  = strtrim("`:di %5.3fc r(mean)'")
+{txt}  9{com}.             local sd    = strtrim("`:di %5.3fc r(sd)'")
+{txt} 10{com}.             local nmean = strtrim("`:di %5.2fc r(mean)'")
+{txt} 11{com}.                 {c )-}
+{txt} 12{com}.                 else{c -(}
+{txt} 13{com}.                         local mean  = strtrim("`:di %5.3fc r(mean)'")
+{txt} 14{com}.             local sd    = strtrim("`:di %5.3fc r(sd)'")
+{txt} 15{com}.             local nmean = strtrim("`:di %5.2fc r(mean) * 100'")
+{txt} 16{com}.                 {c )-}
+{txt} 17{com}. 
+.                 qui sum `outcome'
+{txt} 18{com}.                 local m_`f'_1  = `mean'
+{txt} 19{com}.                 local sd_`f'_2 = `sd'
+{txt} 20{com}.                 
+.                 texresults3 using "${c -(}tables{c )-}\numbers.txt", texmacro(mean`outcome')      ///
+>                 result(`nmean') round(0) unit append // Only for internal use. Comment for publication.
+{txt} 21{com}.                 local ++f
+{txt} 22{com}.                 
+.         {c )-}
+{txt}
+{com}. 
+. restore
+{txt}
+{com}. 
+. 
+. *** Gender
+. 
+. collapse (mean) $cp_outcomes (max) $dp_outcomes , by(personabasicaid rethus_sexo)
+{res}{txt}
+{com}. 
+. * Males
+. local f = 1
+{txt}
+{com}. foreach outcome in $cp_outcomes $dp_outcomes {c -(}
+{txt}  2{com}. 
+.     if inlist("`outcome'", "wage"){c -(}
+{txt}  3{com}.         local mean  = strtrim("`:di %11.0fc r(mean)'")
+{txt}  4{com}.         local sd    = strtrim("`:di %11.0fc r(sd)'")
+{txt}  5{com}.         local nmean = strtrim("`:di %11.0fc r(mean)'")
+{txt}  6{com}.     {c )-}
+{txt}  7{com}.     else if inlist("`outcome'", "daysworked", "edad"){c -(}
+{txt}  8{com}.         local mean  = strtrim("`:di %5.3fc r(mean)'")
+{txt}  9{com}.         local sd    = strtrim("`:di %5.3fc r(sd)'")
+{txt} 10{com}.         local nmean = strtrim("`:di %5.2fc r(mean)'")
+{txt} 11{com}.     {c )-}
+{txt} 12{com}.     else{c -(}
+{txt} 13{com}.         local mean  = strtrim("`:di %5.3fc r(mean)'")
+{txt} 14{com}.         local sd    = strtrim("`:di %5.3fc r(sd)'")
+{txt} 15{com}.         local nmean = strtrim("`:di %5.2fc r(mean) * 100'")
+{txt} 16{com}.     {c )-}
+{txt} 17{com}. 
+.     qui sum `outcome' if rethus_sexo == 1
+{txt} 18{com}.     local m_`f'_3  = `mean'
+{txt} 19{com}.     local sd_`f'_4 = `sd'
+{txt} 20{com}.     
+.     texresults3 using "${c -(}tables{c )-}\numbers.txt", texmacro(mean`outcome'M)         ///
+>     result(`nmean') round(0) unit append // Only for internal use. Comment for publication.
+{txt} 21{com}.     
+.     local ++f
+{txt} 22{com}. {c )-}
+{txt}
+{com}. 
+. 
+. * Females
+. local f = 1
+{txt}
+{com}. foreach outcome in $cp_outcomes $dp_outcomes {c -(}
+{txt}  2{com}. 
+.     if inlist("`outcome'", "wage"){c -(}
+{txt}  3{com}.         local mean  = strtrim("`:di %11.0fc r(mean)'")
+{txt}  4{com}.         local sd    = strtrim("`:di %11.0fc r(sd)'")
+{txt}  5{com}.         local nmean = strtrim("`:di %11.0fc r(mean)'")
+{txt}  6{com}.     {c )-}
+{txt}  7{com}.     else if inlist("`outcome'", "daysworked", "edad"){c -(}
+{txt}  8{com}.         local mean  = strtrim("`:di %5.3fc r(mean)'")
+{txt}  9{com}.         local sd    = strtrim("`:di %5.3fc r(sd)'")
+{txt} 10{com}.         local nmean = strtrim("`:di %5.2fc r(mean)'")
+{txt} 11{com}.     {c )-}
+{txt} 12{com}.     else{c -(}
+{txt} 13{com}.         local mean  = strtrim("`:di %5.3fc r(mean)'")
+{txt} 14{com}.         local sd    = strtrim("`:di %5.3fc r(sd)'")
+{txt} 15{com}.         local nmean = strtrim("`:di %5.2fc r(mean) * 100'")
+{txt} 16{com}.     {c )-}
+{txt} 17{com}.    
+.     qui sum `outcome' if rethus_sexo == 2
+{txt} 18{com}.     local m_`f'_5  = `mean'
+{txt} 19{com}.     local sd_`f'_6 = `sd'
+{txt} 20{com}. 
+.     texresults3 using "${c -(}tables{c )-}\numbers.txt", texmacro(mean`outcome'F)         ///
+>     result(`nmean') round(0) unit append // Only for internal use. Comment for publication.
+{txt} 21{com}.     local ++f
+{txt} 22{com}.     
+. {c )-}
+{txt}
+{com}. 
+. 
+. local new_row = `f' // Save current row position
+{txt}
+{com}.                 
+. 
+. ****************************************************************************
+. **#                                             3. RIPS
+. ****************************************************************************
+. 
+. use "${c -(}data{c )-}\Individual_balanced_all_RIPS.dta", clear
+{txt}
+{com}. keep if (year_grado >= 2011 & year_grado <= 2017)
+{txt}(3,521,882 observations deleted)
+
+{com}. drop if (rethus_sexo != 1 & rethus_sexo != 2)
+{txt}(1,232 observations deleted)
+
+{com}. 
+. rename  service_mental mentaldiag
+{res}{txt}
+{com}.                                 
+. local f = `new_row'
+{txt}
+{com}. 
+. * All sample
+. preserve
+{txt}
+{com}. 
+.         collapse (max) $d_outcomes , by(personabasicaid)
+{res}{txt}
+{com}. 
+.         foreach outcome in $d_outcomes {c -(}
+{txt}  2{com}.                 
+.                 qui sum `outcome'
+{txt}  3{com}.                 local m_`f'_1  = strtrim("`:di %5.3fc r(mean)'")
+{txt}  4{com}.                 local sd_`f'_2 = strtrim("`:di %5.3fc r(sd)'")
+{txt}  5{com}.                 
+.                 local mean     = `m_`f'_1' * 100
+{txt}  6{com}.                 texresults3 using "${c -(}tables{c )-}\numbers.txt", texmacro(mean`outcome')      ///
+>                 result(`mean') round(0) unit append // Only for internal use. Comment for publication.
+{txt}  7{com}.                 
+.                 local ++f
+{txt}  8{com}.                 
+.         {c )-}
+{txt}
+{com}. 
+. restore
+{txt}
+{com}. 
+. ** Gender
+. 
+. collapse (max) $d_outcomes , by(personabasicaid rethus_sexo)
+{res}{txt}
+{com}. 
+. local f = `new_row'
+{txt}
+{com}. foreach outcome in $d_outcomes {c -(}
+{txt}  2{com}.     
+.     * Males
+.     qui sum `outcome' if rethus_sexo == 1
+{txt}  3{com}.     local m_`f'_3  = strtrim("`:di %5.3fc r(mean)'")
+{txt}  4{com}.     local sd_`f'_4 = strtrim("`:di %5.3fc r(sd)'")
+{txt}  5{com}.     
+.     local mean     = `m_`f'_3' * 100
+{txt}  6{com}.     texresults3 using "${c -(}tables{c )-}\numbers.txt", texmacro(mean`outcome'M)         ///
+>     result(`mean') round(0) unit append // Only for internal use. Comment for publication.
+{txt}  7{com}.     
+.     
+.     * Females
+.     qui sum `outcome' if rethus_sexo == 2
+{txt}  8{com}.     local m_`f'_5  = strtrim("`:di %5.3fc r(mean)'")
+{txt}  9{com}.     local sd_`f'_6 = strtrim("`:di %5.3fc r(sd)'")
+{txt} 10{com}.     
+.     local mean     = `m_`f'_5' * 100
+{txt} 11{com}.     texresults3 using "${c -(}tables{c )-}\numbers.txt", texmacro(mean`outcome'F)         ///
+>     result(`mean') round(0) unit append // Only for internal use. Comment for publication.
+{txt} 12{com}.     local ++f
+{txt} 13{com}. {c )-}
+{txt}
+{com}. 
+. 
+. 
+. **** Table 2
+. global t2_outcomes " "Monthly days worked""Formal real monthly wage" "Health-related postgrad. enrollment" "Age at graduation date" "Accessed a health service""Medical consultations" "Medical procedures" "ER visits" "Hospitalizations" "Received mental diagnosis" "
+{txt}
+{com}. 
+. 
+. texdoc init "${c -(}tables{c )-}/table2.tex", replace force       
+{res}{txt}(texdoc output file is Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\table2.tex)
+{res}{txt}
+{com}. 
+. tex \begin{c -(}tabular{c )-}{c -(}lcccccc{c )-}
+{res}{txt}
+{com}. tex \toprule
+{res}{txt}
+{com}. 
+. tex & \multicolumn{c -(}2{c )-}{c -(}c{c )-}{c -(}Whole sample{c )-} & \multicolumn{c -(}2{c )-}{c -(}c{c )-}{c -(}Males{c )-}     & \multicolumn{c -(}2{c )-}{c -(}c{c )-}{c -(}Females{c )-} \\
+{res}{txt}
+{com}. tex \cmidrule(l){c -(}2-3{c )-} \cmidrule(l){c -(}4-5{c )-} \cmidrule(l){c -(}6-7{c )-}
+{res}{txt}
+{com}. 
+. tex & Mean & SD & Mean & SD & Mean & SD \\
+{res}{txt}
+{com}. tex \midrule
+{res}{txt}
+{com}. 
+. 
+. 
+. local i = 1
+{txt}
+{com}. local j = 1
+{txt}
+{com}. foreach var of global t2_outcomes {c -(}
+{txt}  2{com}.         
+.         if `i' == 1       local panel "tex \multicolumn{c -(}9{c )-}{c -(}l{c )-}{c -(}\textit{c -(}Panel A: PILA (2008-2022){c )-}{c )-} \\"
+{txt}  3{com}.     else if `i' == 5  local panel "tex \multicolumn{c -(}9{c )-}{c -(}l{c )-}{c -(}\textit{c -(}Panel B: RIPS (2009-2022){c )-}{c )-} \\"
+{txt}  4{com}.     else              local panel
+{txt}  5{com}.     
+.     if `j' == 4       local space "\addlinespace"
+{txt}  6{com}.     else              local space
+{txt}  7{com}.     
+.     
+.     `panel'
+{txt}  8{com}.         tex `var' & `m_`i'_1' & `sd_`i'_2' & `m_`i'_3' & `sd_`i'_4' & `m_`i'_5' & `sd_`i'_6' \\ `space'
+{txt}  9{com}.         
+.     local ++i
+{txt} 10{com}.         local ++j
+{txt} 11{com}. {c )-}
+{res}{txt}
+{com}. 
+. tex \bottomrule
+{res}{txt}
+{com}. tex \end{c -(}tabular{c )-}
+{res}{txt}
+{com}. texdoc close
+{txt}(texdoc output written to {browse `"Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\table2.tex"':Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\table2.tex})
+{res}{txt}
+{com}. 
+. 
+. 
+. ****************************************************************************
+. **#                                             3.1. Wage by ranges
+. ****************************************************************************
+. use "${c -(}data{c )-}\Individual_balanced_all_PILA.dta", clear
+{txt}
+{com}. keep if (year_grado >= 2011 & year_grado <= 2017)
+{txt}(7,482,240 observations deleted)
+
+{com}. drop if (rethus_sexo != 1 & rethus_sexo != 2)
+{txt}(2,640 observations deleted)
+
+{com}. 
+. * Minimum wage per year
+. gen     mw = 461500  if (year == 2008)
+{txt}(2,337,000 missing values generated)
+
+{com}. replace mw = 496900  if (year == 2009)
+{txt}(0 real changes made)
+
+{com}. replace mw = 515000  if (year == 2010)
+{txt}(0 real changes made)
+
+{com}. replace mw = 535600  if (year == 2011)
+{txt}(298,140 real changes made)
+
+{com}. replace mw = 566700  if (year == 2012)
+{txt}(313,980 real changes made)
+
+{com}. replace mw = 589500  if (year == 2013)
+{txt}(336,180 real changes made)
+
+{com}. replace mw = 616000  if (year == 2014)
+{txt}(330,090 real changes made)
+
+{com}. replace mw = 644350  if (year == 2015)
+{txt}(351,540 real changes made)
+
+{com}. replace mw = 689455  if (year == 2016)
+{txt}(352,500 real changes made)
+
+{com}. replace mw = 737717  if (year == 2017)
+{txt}(354,570 real changes made)
+
+{com}. replace mw = 781242  if (year == 2018)
+{txt}(0 real changes made)
+
+{com}. replace mw = 828116  if (year == 2019)
+{txt}(0 real changes made)
+
+{com}. replace mw = 877803  if (year == 2020)
+{txt}(0 real changes made)
+
+{com}. replace mw = 908526  if (year == 2021)
+{txt}(0 real changes made)
+
+{com}. replace mw = 1000000 if (year == 2022)
+{txt}(0 real changes made)
+
+{com}. 
+. preserve
+{txt}
+{com}. 
+.         gen graduates = 1
+{txt}
+{com}. 
+.         gen w_range = .
+{txt}(2,337,000 missing values generated)
+
+{com}.         replace w_range = 1 if (pila_salario_r <= mw)
+{err}pila_salario_r ambiguous abbreviation
+{txt}{search r(111), local:r(111);}
+
+end of do-file
+
+{search r(111), local:r(111);}
+
+{com}. do "C:\Users\pmede1\AppData\Local\Temp\STDf7c4_000000.tmp"
+{txt}
+{com}. use "${c -(}data{c )-}\Individual_balanced_all_PILA.dta", clear
+{txt}
+{com}. keep if (year_grado >= 2011 & year_grado <= 2017)
+{txt}(7,482,240 observations deleted)
+
+{com}. drop if (rethus_sexo != 1 & rethus_sexo != 2)
+{txt}(2,640 observations deleted)
+
+{com}. 
+. * Minimum wage per year
+. gen     mw = 461500  if (year == 2008)
+{txt}(2,337,000 missing values generated)
+
+{com}. replace mw = 496900  if (year == 2009)
+{txt}(0 real changes made)
+
+{com}. replace mw = 515000  if (year == 2010)
+{txt}(0 real changes made)
+
+{com}. replace mw = 535600  if (year == 2011)
+{txt}(298,140 real changes made)
+
+{com}. replace mw = 566700  if (year == 2012)
+{txt}(313,980 real changes made)
+
+{com}. replace mw = 589500  if (year == 2013)
+{txt}(336,180 real changes made)
+
+{com}. replace mw = 616000  if (year == 2014)
+{txt}(330,090 real changes made)
+
+{com}. replace mw = 644350  if (year == 2015)
+{txt}(351,540 real changes made)
+
+{com}. replace mw = 689455  if (year == 2016)
+{txt}(352,500 real changes made)
+
+{com}. replace mw = 737717  if (year == 2017)
+{txt}(354,570 real changes made)
+
+{com}. replace mw = 781242  if (year == 2018)
+{txt}(0 real changes made)
+
+{com}. replace mw = 828116  if (year == 2019)
+{txt}(0 real changes made)
+
+{com}. replace mw = 877803  if (year == 2020)
+{txt}(0 real changes made)
+
+{com}. replace mw = 908526  if (year == 2021)
+{txt}(0 real changes made)
+
+{com}. replace mw = 1000000 if (year == 2022)
+{txt}(0 real changes made)
+
+{com}. 
+. preserve
+{txt}
+{com}. 
+.         gen graduates = 1
+{txt}
+{com}. 
+.         gen w_range = .
+{txt}(2,337,000 missing values generated)
+
+{com}.         replace w_range = 1 if (pila_salario_r_0 <= mw)
+{txt}(1,238,576 real changes made)
+
+{com}.         replace w_range = 2 if (pila_salario_r_0 >  mw          & pila_salario_r_0 <= (mw * 2))
+{txt}(255,760 real changes made)
+
+{com}.         replace w_range = 3 if (pila_salario_r_0 > (mw * 2)     & pila_salario_r_0 <= (mw * 3))
+{txt}(100,946 real changes made)
+
+{com}.         replace w_range = 4 if (pila_salario_r_0 > (mw * 3)     & pila_salario_r_0 <= (mw * 5))
+{txt}(302,577 real changes made)
+
+{com}.         replace w_range = 5 if (pila_salario_r_0 > (mw * 5))
+{txt}(439,141 real changes made)
+
+{com}.         
+.         collapse (sum) graduates, by(rethus_codigoperfilpre1 fecha_pila w_range)
+{res}{txt}
+{com}.         format fecha_pila %th
+{txt}
+{com}.     
+.         save "${c -(}tables{c )-}\wage_ranges", replace
+{txt}{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\wage_ranges.dta{rm}
+saved
+{p_end}
+
+{com}.         export excel using "${c -(}tables{c )-}\wage_ranges.xlsx", firstrow(variables) sheet("All") sheetreplace
+{res}{txt}file {bf:Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\wage_ranges.xlsx} saved
+
+{com}. 
+. restore
+{txt}
+{com}. 
+. 
+. * Count people by salary range
+. gen w_range_1 = (pila_salario_r_0 <= mw)
+{txt}
+{com}. gen w_range_2 = (pila_salario_r_0 >  mw         & pila_salario_r_0 <= (mw * 2))
+{txt}
+{com}. gen w_range_3 = (pila_salario_r_0 > (mw * 2)  & pila_salario_r_0 <= (mw * 3))
+{txt}
+{com}. gen w_range_4 = (pila_salario_r_0 > (mw * 3)  & pila_salario_r_0 <= (mw * 5))
+{txt}
+{com}. gen w_range_5 = (pila_salario_r_0 > (mw * 5))
+{txt}
+{com}. 
+. collapse (sum) w_range*, by(rethus_codigoperfilpre1 fecha_pila)
+{res}{txt}
+{com}. sort fecha_pila
+{txt}
+{com}. order fecha_pila
+{txt}
+{com}. 
+. save "${c -(}tables{c )-}\wage_ranges", replace
+{txt}{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\wage_ranges.dta{rm}
+saved
+{p_end}
+
+{com}. export excel using "${c -(}tables{c )-}\wage_ranges.xlsx", firstrow(variables) sheet("All") sheetreplace
+{res}{txt}file {bf:Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Tables\wage_ranges.xlsx} saved
+
+{com}. 
+{txt}end of do-file
+
+{com}. do "C:\Users\pmede1\AppData\Local\Temp\STDf7c4_000000.tmp"
+{txt}
+{com}. 
+. * Age at the graduation figure
+. use "${c -(}data{c )-}\Individual_balanced_all_PILA.dta", clear
+{txt}
+{com}. drop if (rethus_sexo != 1 & rethus_sexo != 2)
+{txt}(6,300 observations deleted)
+
+{com}. 
+. collapse (mean) edad, by(year_grado rethus_codigoperfilpre1)
+{res}{txt}
+{com}. keep if inrange(year_grado,2011,2017)
+{txt}(328 observations deleted)
+
+{com}. 
+. tw      (connected edad year_grado if rethus_codigoperfilpre1 == "P01", color(gs11)   m(O) msize(medsmall))                     ///
+>         (connected edad year_grado if rethus_codigoperfilpre1 == "P03", color(gs9)    m(S) msize(medsmall))                     ///
+>         (connected edad year_grado if rethus_codigoperfilpre1 == "P07", color(gs6)    m(D) msize(medsmall))                     ///
+>         (connected edad year_grado if rethus_codigoperfilpre1 == "P09", color(gs1)    m(T) msize(medsmall)),            ///
+>         xtitle(Year) ytitle(Age at graduation date)     ylab(#10) xlab(2011(1)2017)                                                                             ///
+>         legend(order(4 "Dentists" 3 "Physicians" 2 "Nurses" 1 "Bacteriologists") position(6) col(4))                            ///
+>         graphregion(fcolor(white))
+{res}{txt}
+{com}.         
+. graph export "${c -(}figures{c )-}\age_at_graduation.pdf", replace        
+{txt}{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\age_at_graduation.pdf{rm}
+saved as
+PDF
+format
+{p_end}
+
+{com}. 
+. * Outcomes by age
+. use "${c -(}data{c )-}\Individual_balanced_all_PILA.dta", clear
+{txt}
+{com}. drop if (rethus_sexo != 1 & rethus_sexo != 2)
+{txt}(6,300 observations deleted)
+
+{com}. drop edad
+{txt}
+{com}. 
+. global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0               ///
+>                                 p_cotizaciones_0 pila_independientes pila_salario_r_max_0
+{txt}
+{com}. 
+. replace fecha_pila = yofd(dofh(fecha_pila))
+{txt}(9,815,580 real changes made)
+
+{com}. replace birth      = yofd(birth)                
+{txt}(5,083,560 real changes made)
+
+{com}.                                 
+. gen     dist           = fecha_pila - birth
+{txt}(4,731,660 missing values generated)
+
+{com}. 
+. collapse (mean) ${c -(}outcomes{c )-}, by(dist rethus_codigoperfilpre1)
+{res}{txt}
+{com}. keep if dist >= 18 & dist <= 67
+{txt}(76 observations deleted)
+
+{com}. 
+. local outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0                ///
+>                                 p_cotizaciones_0 pila_independientes pila_salario_r_max_0
+{txt}
+{com}.                                 
+. foreach outcome in `outcomes' {c -(}
+{txt}  2{com}. 
+.         if "`outcome'" == "pila_salario_r_0" | "`outcome'" == "pila_salario_r_max_0" {c -(}          
+{txt}  3{com}.                 local e = "12.0"
+{txt}  4{com}.         {c )-} 
+{txt}  5{com}.         else if "`outcome'" == "sal_dias_cot_0" {c -(}       
+{txt}  6{com}.                 local e = "12.0"
+{txt}  7{com}.         {c )-}
+{txt}  8{com}.         else {c -(}          
+{txt}  9{com}.                 local e = "5.2" 
+{txt} 10{com}.         {c )-}
+{txt} 11{com}. 
+.         twoway  (line `outcome' dist if (rethus_codigoperfilpre1 == "P01"), lc(gs11))           ///
+>                         (line `outcome' dist if (rethus_codigoperfilpre1 == "P03"), lc(gs9) )           ///
+>                         (line `outcome' dist if (rethus_codigoperfilpre1 == "P07"), lc(gs6) )           ///
+>                         (line `outcome' dist if (rethus_codigoperfilpre1 == "P09"), lc(gs1) ),          ///
+>                         xlabel(18(1)67, nogrid labsize(vsmall))                                                                         ///
+>                         ylabel(#10, angle(h) format(%`e'fc) labsize(small))                                                     ///
+>                         xline(24, lcolor(gs10))                                                                                                         ///
+>                         xline(47, lcolor(gs10))                                                                                                         ///
+>                         xline(52, lcolor(gs10))                                                                                                         ///
+>                         xtitle("Age")                                                                                                                           ///
+>                         ytitle("`outcome'")                                                                                                                     ///
+>                         graphregion(fcolor(white))                                                                                                      ///
+>                         legend(order(   4 "Dentists"    3 "Physicians"                                                          ///
+>                                                         2 "Nurses"              1 "Bacteriologists")                                            ///
+>                                                         position(6) col(4))
+{txt} 12{com}.         
+.         graph export "${c -(}figures{c )-}\\`outcome'_by_age.png", replace
+{txt} 13{com}. 
+. {c )-}
+{res}{txt}{p 0 4 2}
+(file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\sal_dias_cot_0_by_age.png{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\sal_dias_cot_0_by_age.png{rm}
+saved as
+PNG
+format
+{p_end}
+{res}{txt}{p 0 4 2}
+(file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\posgrado_salud_by_age.png{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\posgrado_salud_by_age.png{rm}
+saved as
+PNG
+format
+{p_end}
+{res}{txt}{p 0 4 2}
+(file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\pila_salario_r_0_by_age.png{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\pila_salario_r_0_by_age.png{rm}
+saved as
+PNG
+format
+{p_end}
+{res}{txt}{p 0 4 2}
+(file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\l_pila_salario_r_0_by_age.png{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\l_pila_salario_r_0_by_age.png{rm}
+saved as
+PNG
+format
+{p_end}
+{res}{txt}{p 0 4 2}
+(file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\p_cotizaciones_0_by_age.png{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\p_cotizaciones_0_by_age.png{rm}
+saved as
+PNG
+format
+{p_end}
+{res}{txt}{p 0 4 2}
+(file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\pila_independientes_by_age.png{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\pila_independientes_by_age.png{rm}
+saved as
+PNG
+format
+{p_end}
+{res}{txt}{p 0 4 2}
+(file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\pila_salario_r_max_0_by_age.png{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Figures\pila_salario_r_max_0_by_age.png{rm}
+saved as
+PNG
+format
+{p_end}
+
+{com}. 
+{txt}end of do-file
+
+{com}. exit, clear

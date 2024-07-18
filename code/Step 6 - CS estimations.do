@@ -29,11 +29,12 @@ else {
 	global pc "\\sm093119"
 }
 
-global root "${pc}\Proyectos\Banrep research\Returns to Health Sector"
+global data "${pc}\Proyectos\Banrep research\Returns to Health Sector\Data"
+global root "Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
 
 global logs 	"${root}\Logs"
-global data 	"${root}\Data"
 global tables 	"${root}\Tables"
+global figures 	"${root}\Figures"
 
 
 cap log close

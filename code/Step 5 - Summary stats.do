@@ -31,10 +31,10 @@ else {
 	global pc "\\sm093119"
 }
 
-global root "${pc}\Proyectos\Banrep research\Returns to Health Sector"
+global data "${pc}\Proyectos\Banrep research\Returns to Health Sector\Data"
+global root 	"Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
 
 global logs 	"${root}\Logs"
-global data 	"${root}\Data"
 global tables 	"${root}\Tables"
 global figures 	"${root}\Figures"
 
@@ -115,7 +115,7 @@ foreach ocupacion in $ocupaciones {
 	local B_1_`f' = strtrim("`: di %10.0fc r(N)'")
 	local P_1_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
 	
-	local mean    = `B_1_`f'' * 100
+	local mean    = r(N) * 100
 	texresults3 using "${tables}\numbers.txt", texmacro(mean`ocupacion') 	///
 	result(`mean') round(0) unit append // Only for internal use. Comment for publication.
 	
@@ -425,6 +425,7 @@ foreach var of global t2_outcomes {
     if `j' == 4       local space "\addlinespace"
     else              local space
     
+    
     `panel'
 	tex `var' & `m_`i'_1' & `sd_`i'_2' & `m_`i'_3' & `sd_`i'_4' & `m_`i'_5' & `sd_`i'_6' \\ `space'
 	
@@ -467,11 +468,11 @@ preserve
 	gen graduates = 1
 
 	gen w_range = .
-	replace w_range = 1 if (pila_salario_r <= mw)
-	replace w_range = 2 if (pila_salario_r >  mw		& pila_salario_r <= (mw * 2))
-	replace w_range = 3 if (pila_salario_r > (mw * 2) 	& pila_salario_r <= (mw * 3))
-	replace w_range = 4 if (pila_salario_r > (mw * 3)  	& pila_salario_r <= (mw * 5))
-	replace w_range = 5 if (pila_salario_r > (mw * 5))
+	replace w_range = 1 if (pila_salario_r_0 <= mw)
+	replace w_range = 2 if (pila_salario_r_0 >  mw		& pila_salario_r_0 <= (mw * 2))
+	replace w_range = 3 if (pila_salario_r_0 > (mw * 2) 	& pila_salario_r_0 <= (mw * 3))
+	replace w_range = 4 if (pila_salario_r_0 > (mw * 3)  	& pila_salario_r_0 <= (mw * 5))
+	replace w_range = 5 if (pila_salario_r_0 > (mw * 5))
 	
 	collapse (sum) graduates, by(rethus_codigoperfilpre1 fecha_pila w_range)
 	format fecha_pila %th
@@ -483,11 +484,11 @@ restore
 
 
 * Count people by salary range
-gen w_range_1 = (pila_salario_r <= mw)
-gen w_range_2 = (pila_salario_r >  mw		& pila_salario_r <= (mw * 2))
-gen w_range_3 = (pila_salario_r > (mw * 2)  & pila_salario_r <= (mw * 3))
-gen w_range_4 = (pila_salario_r > (mw * 3)  & pila_salario_r <= (mw * 5))
-gen w_range_5 = (pila_salario_r > (mw * 5))
+gen w_range_1 = (pila_salario_r_0 <= mw)
+gen w_range_2 = (pila_salario_r_0 >  mw		& pila_salario_r_0 <= (mw * 2))
+gen w_range_3 = (pila_salario_r_0 > (mw * 2)  & pila_salario_r_0 <= (mw * 3))
+gen w_range_4 = (pila_salario_r_0 > (mw * 3)  & pila_salario_r_0 <= (mw * 5))
+gen w_range_5 = (pila_salario_r_0 > (mw * 5))
 
 collapse (sum) w_range*, by(rethus_codigoperfilpre1 fecha_pila)
 sort fecha_pila
