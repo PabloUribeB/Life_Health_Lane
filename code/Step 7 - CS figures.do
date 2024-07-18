@@ -23,10 +23,8 @@
 clear all
 set more off
 
-global user "`c(username)'"
-
-global tables	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Tables"
-global figures	"C:\Users\${user}\Dropbox\EH_Papers\Education Paper\Figures"
+global tables	"~\Dropbox\EH_Papers\Education Paper\Tables"
+global figures	"~\Dropbox\EH_Papers\Education Paper\Figures"
 
 
 set scheme white_tableau
@@ -56,7 +54,11 @@ gen rips_outcome	=  (outcome == "urg"					| outcome == "urg_np"					| 				///
 						
 keep if pila_outcome == 1 | rips_outcome == 1
 
-* Conversion factor PPA
+* Conversion factor PPA GDP base
+* Source: https://datos.bancomundial.org/indicator/PA.NUS.PPP?locations=CO
+*g ppa = 1322.15
+
+* Conversion factor PPA private consumption base
 * Source: https://datos.bancomundial.org/indicator/PA.NUS.PRVT.PP?locations=CO
 gen ppa = 1464.41
 
@@ -294,7 +296,7 @@ levelsof outcome if pila_outcome == 1, local(outcomes)
 levelsof gender, local(genders)
 
 *Tester
-local outcomes = "pila_salario_r_0_npos" "pila_salario_r_0_posg"
+*local outcomes = "pila_salario_r_0_npos" "pila_salario_r_0_posg"
 
 foreach outcome in `outcomes' {
 	
@@ -375,7 +377,6 @@ foreach outcome in `outcomes' {
 
 *Postgraduates
 levelsof gender, local(genders)
-* "posgrado_salud" "pila_salario_r_0_posg" "pila_salario_r_0_npos"
 local outcomes = "posgrado_salud pila_salario_r_0_posg pila_salario_r_0_npos"
 
 foreach outcome in `outcomes' {
@@ -634,50 +635,6 @@ foreach outcome in `outcomes' {
 				
 		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap.pdf", replace
 		
-}
-
-
-****************************************************************************
-**#						5. Extra descriptives
-****************************************************************************
-
-use "${tables}\wage_ages", clear
-rename edad dist
-keep if dist >= 18 & dist <= 67
-
-local outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 		///
-				p_cotizaciones_0 pila_independientes pila_salario_r_max_0
-				
-foreach outcome in `outcomes' {
-
-	if "`outcome'" == "pila_salario_r_0" | "`outcome'" == "pila_salario_r_max_0" {		
-		local e = "12.0"
-	} 
-	else if "`outcome'" == "sal_dias_cot_0" {	
-		local e = "12.0"
-	}
-	else {		
-		local e = "5.2"	
-	}
-
-	twoway 	(line `outcome' dist if (rethus_codigoperfilpre1 == "P01"), lc(gs11))		///
-			(line `outcome' dist if (rethus_codigoperfilpre1 == "P03"), lc(gs9) )		///
-			(line `outcome' dist if (rethus_codigoperfilpre1 == "P07"), lc(gs6) )		///
-			(line `outcome' dist if (rethus_codigoperfilpre1 == "P09"), lc(gs1) ),		///
-			xlabel(18(1)67, nogrid labsize(vsmall))	 						 			///
-			ylabel(#10, angle(h) format(%`e'fc) labsize(small))							///
-			xline(24, lcolor(gs10))														///
-			xline(47, lcolor(gs10))														///
-			xline(52, lcolor(gs10))														///
-			xtitle("Age")																///
-			ytitle("`outcome'")															///
-			graphregion(fcolor(white))													///
-			legend(order(	4 "Dentists" 	3 "Physicians"								///
-							2 "Nurses" 		1 "Bacteriologists")						///
-							position(6) col(4))
-	
-	graph export "${figures}\Old professionals\\`outcome'.png", replace
-
 }
 
 

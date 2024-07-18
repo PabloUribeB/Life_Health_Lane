@@ -344,7 +344,7 @@ foreach ocupacion in $ocupaciones {
 		
 		foreach gender in $genders {
 	
-			use if inrange(year_grado,2011,2017) using "${data}\Individual_balanced_all_PILA", clear
+			use if inrange(year_grado,2011,2015) using "${data}\Individual_balanced_all_PILA", clear
 			drop if (rethus_sexo != 1 & rethus_sexo != 2)
 			
 			*mdesc fechapregrado
@@ -416,7 +416,7 @@ foreach ocupacion in $ocupaciones {
 		
 		foreach gender in $genders {
 	
-			use if inrange(year_grado,2011,2017) using "${data}\Individual_balanced_all_PILA", clear
+			use if inrange(year_grado,2011,2015) using "${data}\Individual_balanced_all_PILA", clear
 			drop if (rethus_sexo != 1 & rethus_sexo != 2)
 			
 			merge m:1 personabasicaid using `ever_pregnant', keep(3) nogen
@@ -479,7 +479,7 @@ foreach ocupacion in $ocupaciones {
 		
 		foreach gender in $genders {
 	
-			use personabasicaid year_grado year_RIPS fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 if inrange(year_grado,2011,2017) & rethus_codigoperfilpre1 == "`ocupacion'" using "${data}\Individual_balanced_all_RIPS", clear
+			use personabasicaid year_grado year_RIPS fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 if inrange(year_grado,2011,2015) & rethus_codigoperfilpre1 == "`ocupacion'" using "${data}\Individual_balanced_all_RIPS", clear
 			drop if (rethus_sexo != 1 & rethus_sexo != 2)
 			
 			*mdesc fechapregrado

@@ -511,7 +511,8 @@ export excel using "${tables}\wage_ranges.xlsx", firstrow(variables) sheet("All"
 use "${data}\Individual_balanced_all_PILA.dta", clear
 drop if (rethus_sexo != 1 & rethus_sexo != 2)
 
-collapse (max) edad, by(year_grado rethus_codigoperfilpre1)
+collapse (mean) edad, by(year_grado rethus_codigoperfilpre1)
+keep if inrange(year_grado,2011,2017)
 
 tw 	(connected edad year_grado if rethus_codigoperfilpre1 == "P01", color(gs11)   m(O) msize(medsmall))			///
 	(connected edad year_grado if rethus_codigoperfilpre1 == "P03", color(gs9)    m(S) msize(medsmall))			///
@@ -521,22 +522,58 @@ tw 	(connected edad year_grado if rethus_codigoperfilpre1 == "P01", color(gs11) 
 	legend(order(4 "Dentists" 3 "Physicians" 2 "Nurses" 1 "Bacteriologists") position(6) col(4))				///
 	graphregion(fcolor(white))
 	
-graph export "${figures}\Age_at_graddate.pdf", replace	
+graph export "${figures}\age_at_graduation.pdf", replace	
 
 * Outcomes by age
 use "${data}\Individual_balanced_all_PILA.dta", clear
 drop if (rethus_sexo != 1 & rethus_sexo != 2)
+drop edad
 
-global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 			///
+global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 		///
 				p_cotizaciones_0 pila_independientes pila_salario_r_max_0
 
 replace fecha_pila = yofd(dofh(fecha_pila))
 replace birth = yofd(birth)		
 				
-gen	edad = fecha_pila - birth
+gen	dist = fecha_pila - birth
 
-collapse (mean) ${outcomes}, by(edad rethus_codigoperfilpre1)
-save "${tables}\wage_ages", replace
+collapse (mean) ${outcomes}, by(dist rethus_codigoperfilpre1)
+keep if dist >= 18 & dist <= 67
+
+local outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 		///
+				p_cotizaciones_0 pila_independientes pila_salario_r_max_0
+				
+foreach outcome in `outcomes' {
+
+	if "`outcome'" == "pila_salario_r_0" | "`outcome'" == "pila_salario_r_max_0" {		
+		local e = "12.0"
+	} 
+	else if "`outcome'" == "sal_dias_cot_0" {	
+		local e = "12.0"
+	}
+	else {		
+		local e = "5.2"	
+	}
+
+	twoway 	(line `outcome' dist if (rethus_codigoperfilpre1 == "P01"), lc(gs11))		///
+			(line `outcome' dist if (rethus_codigoperfilpre1 == "P03"), lc(gs9) )		///
+			(line `outcome' dist if (rethus_codigoperfilpre1 == "P07"), lc(gs6) )		///
+			(line `outcome' dist if (rethus_codigoperfilpre1 == "P09"), lc(gs1) ),		///
+			xlabel(18(1)67, nogrid labsize(vsmall))	 						 			///
+			ylabel(#10, angle(h) format(%`e'fc) labsize(small))							///
+			xline(24, lcolor(gs10))														///
+			xline(47, lcolor(gs10))														///
+			xline(52, lcolor(gs10))														///
+			xtitle("Age")																///
+			ytitle("`outcome'")															///
+			graphregion(fcolor(white))													///
+			legend(order(	4 "Dentists" 	3 "Physicians"								///
+							2 "Nurses" 		1 "Bacteriologists")						///
+							position(6) col(4))
+	
+	graph export "${figures}\\`outcome'_by_age.png", replace
+
+}
 
 
 ****************************************************************************
