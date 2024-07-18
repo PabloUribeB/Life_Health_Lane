@@ -88,15 +88,15 @@ graph export "${figures}\hist_graduates_sample_half.pdf", replace
 sum profesionales
 local B_1_1 = strtrim("`: di %10.0fc r(N)'")
 local b_1_1 = r(N)
-local P_1_1 = "(" + strtrim("`:di %5.0f r(N) / `b_1_1' * 100'") + "%)"
+local P_1_1 = "(" + strtrim("`:di %5.0f r(N) / `b_1_1' * 100'") + "\%)"
 
 sum profesionales if rethus_sexo == 1
 local B_2_1 = strtrim("`: di %10.0fc r(N)'")
-local P_2_1 = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
+local P_2_1 = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "\%)"
 
 sum profesionales if rethus_sexo == 2
 local B_3_1 = strtrim("`: di %10.0fc r(N)'")
-local P_3_1 = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
+local P_3_1 = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "\%)"
 
 texresults3 using "${tables}\numbers.txt", texmacro(samplerethus) 			///
 result(`B_1_1') replace // Only for internal use. Comment for publication.
@@ -113,7 +113,7 @@ foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'")
 	local B_1_`f' = strtrim("`: di %10.0fc r(N)'")
-	local P_1_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
+	local P_1_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "\%)"
 	
 	local mean    = r(N) * 100
 	texresults3 using "${tables}\numbers.txt", texmacro(mean`ocupacion') 	///
@@ -129,7 +129,7 @@ foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'" & rethus_sexo == 1)
 	local B_2_`f' = strtrim("`: di %10.0fc r(N)'")
-	local P_2_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
+	local P_2_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "\%)"
 	
 	local ++f
 	
@@ -141,7 +141,7 @@ foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'" & rethus_sexo == 2)
 	local B_3_`f' = strtrim("`: di %10.0fc r(N)'")
-	local P_3_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
+	local P_3_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "\%)"
 
 	local ++f
 	
