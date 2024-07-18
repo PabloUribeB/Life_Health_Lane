@@ -40,20 +40,15 @@ global figures 	"${root}\Figures"
 
 global data_rethus 	"${pc}\Proyectos\Banrep research\f_ReturnsToEducation Health sector\Data"
 
+global ocupaciones Bact Nurse Phys Dent                   // Rethus
+global rethus_rows " "Whole sample"  "Males" "Females" "  // Rethus
+
+global d_outcomes service consul proce urg hosp mentaldiag // RIPS
+
+global cp_outcomes 	daysworked wage // PILA
+global dp_outcomes 	postgrad edad   // PILA
+
 set scheme white_tableau
-
-global rips_rows " "service" "consul" "proce" "urg_np" "hosp_np" "urg" "hosp" "service_mental" "service_mental2" "pregnancy" "Total" "
-
-global pila_rows " "sal_dias_cot_0" "pila_salario_r_0" "l_pila_salario_r_0" "nro_cotizaciones_0" "formal" "posgrado_salud"  "posgrado_rethus" "posgrado_rethus_acum" "p_cotizaciones_0" "pila_independientes" "pila_dependientes" "edad" "Total" "
-
-global columns " "Mean_all" "SD_all" "Min_all" "Max_all" "Mean_male" "SD_male" "Min_male" "Max_male" "Mean_female" "SD_female" "Min_female" "Max_female" "
-
-global ocupaciones Bact Nurse Phys Dent
-
-
-local rips_row : list sizeof global(rips_rows) // Count number of outcomes for # rows
-local pila_row : list sizeof global(pila_rows) // Count number of outcomes for # rows
-local column   : list sizeof global(columns)   // Count number of outcomes for # rows
 
 cap log close
 log using "${root}\Logs\Step_5.smcl", replace
@@ -62,37 +57,46 @@ log using "${root}\Logs\Step_5.smcl", replace
 ****************************************************************************
 **#						1. RETHUS
 ****************************************************************************
-
 use "${data}\master_rethus.dta", clear
 
 gen profesionales = 1
-mat define 		table1	= J(5,6,.)
-mat colnames 	table1	= "N" "Percent" "N male" "Percent male" "N female" "Percent female"
-mat rownames 	table1	= "All" "Bacteriologist" "Nurse" "Physician" "Dentist"
 
 	
 * All
 keep if inrange(year_grado, 2011, 2017)
 drop if (rethus_sexo != 1 & rethus_sexo != 2)
 
+
+* Graduates per year
+tw 	hist year_grado, freq disc xlab(2011(1)2017) barw(0.5) fcolor(gs13) ///
+lcolor(gs11) xtitle("Year of graduation") ylabel(#10,format(%12.0fc))
+graph export "${figures}\hist_graduates_sample.pdf", replace
+	
+* Graduates per half (Figure 1)
+replace fechapregrado = hofd(dofm(fechapregrado))
+format fechapregrado %th
+
+tw 	hist fechapregrado, freq disc xlab(102(1)115) barw(0.5) fcolor(gs13) ///
+lcolor(gs11) xtitle("Semester of graduation") ylabel(#10,format(%12.0fc)) xlab(, angle(45))
+graph export "${figures}\hist_graduates_sample_half.pdf", replace
+
+
+* Calculate statistics
 sum profesionales
-mat table1[1,1] = r(N)
-mat table1[1,2] = table1[1,1] / table1[1,1]
+local B_1_1 = strtrim("`: di %10.0fc r(N)'")
+local P_1_1 = "(" + strtrim("`:di %5.0f `B_1_1' / `B_1_1' * 100'") + "%)"
 
 sum profesionales if rethus_sexo == 1
-mat table1[1,3] = r(N)
-mat table1[1,4] = table1[1,3] / table1[1,1]
+local B_2_1 = strtrim("`: di %10.0fc r(N)'")
+local P_2_1 = "(" + strtrim("`:di %5.2f `B_2_1' / `B_1_1' * 100'") + "%)"
 
 sum profesionales if rethus_sexo == 2
-mat table1[1,5] = r(N)
-mat table1[1,6] = table1[1,5] / table1[1,1]
-
-
-count
-local rethus: dis %10.0fc r(N)
+local B_3_1 = strtrim("`: di %10.0fc r(N)'")
+local P_3_1 = "(" + strtrim("`:di %5.2f `B_3_1' / `B_1_1' * 100'") + "%)"
 
 texresults3 using "${tables}\numbers.txt", texmacro(samplerethus) 			///
-result(`rethus') replace // Only for internal use. Comment for publication.
+result(`B_1_1') replace // Only for internal use. Comment for publication.
+
 
 replace rethus_codigoperfilpre1 = "Bact" 	if rethus_codigoperfilpre1 == "P01"
 replace rethus_codigoperfilpre1 = "Phys" 	if rethus_codigoperfilpre1 == "P07"
@@ -104,10 +108,10 @@ local f = 2
 foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'")
-	mat table1[`f',1] = r(N)
-	mat table1[`f',2] = table1[`f',1] / table1[1,1]
+	local B_1_`f' = strtrim("`: di %10.0fc r(N)'")
+	local P_1_`f' = "(" + strtrim("`:di %5.2f `B_1_`f'' / `B_1_1' * 100'") + "%)"
 	
-	local mean 		  = table1[`f',2] * 100
+	local mean    = `B_1_`f'' * 100
 	texresults3 using "${tables}\numbers.txt", texmacro(mean`ocupacion') 	///
 	result(`mean') round(0) unit append // Only for internal use. Comment for publication.
 	
@@ -120,8 +124,8 @@ local f = 2
 foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'" & rethus_sexo == 1)
-	mat table1[`f',3] = r(N)
-	mat table1[`f',4] = table1[`f',3] / table1[1,1]
+	local B_2_`f' = strtrim("`: di %10.0fc r(N)'")
+	local P_2_`f' = "(" + strtrim("`:di %5.2f `B_2_`f'' / `B_1_1' * 100'") + "%)"
 	
 	local ++f
 	
@@ -132,136 +136,51 @@ local f = 2
 foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'" & rethus_sexo == 2)
-	mat table1[`f',5] = r(N)
-	mat table1[`f',6] = table1[`f',5] / table1[1,1]
+	local B_3_`f' = strtrim("`: di %10.0fc r(N)'")
+	local P_3_`f' = "(" + strtrim("`:di %5.2f `B_3_`f'' / `B_1_1' * 100'") + "%)"
 
 	local ++f
 	
 }
+
+
+**** Table 1
+
+texdoc init "${tables}/table1.tex", replace force	
+
+tex \begin{tabular}{lccccc}
+tex \toprule
+
+tex & All professions & Bacteriologists & Nurses & Physicians & Dentists \\
+tex \midrule
+
+
+
+local i = 1
+local j = 1
+foreach var of global rethus_rows{
 	
-matlist table1
-putexcel set "$tables\Descriptives.xls", sheet("Rethus", replace) modify
-putexcel B2=mat(table1), names
-
-* Graduates per year
-tw 	hist year_grado, freq disc xlab(2011(1)2017) barw(0.5) fcolor(gs13) ///
-lcolor(gs11) xtitle("Year of graduation") ylabel(#10,format(%12.0fc))
-graph export "${figures}\hist_graduates_sample.pdf", replace
+	if mod(`i',2) == 1  local labrow "`var'"
+    else                local labrow
+    
+    if `j' == 3         local space
+    else                local space "\addlinespace"
+    
+	tex `labrow' & `B_`i'_1' & `B_`i'_2' & `B_`i'_3' & `B_`i'_4' & `B_`i'_5' \\
+    tex          & `P_`i'_1' & `P_`i'_2' & `P_`i'_3' & `P_`i'_4' & `P_`i'_5' \\ `space'
 	
-* Graduates per half
-replace fechapregrado = hofd(dofm(fechapregrado))
-format fechapregrado %th
-
-tw 	hist fechapregrado, freq disc xlab(102(1)115) barw(0.5) fcolor(gs13) ///
-lcolor(gs11) xtitle("Semester of graduation") ylabel(#10,format(%12.0fc)) xlab(, angle(45))
-graph export "${figures}\hist_graduates_sample_half.pdf", replace	
+    local ++i
+    local ++j
 	
-	
+}
 
-****************************************************************************
-**#						2. RIPS
-****************************************************************************
+tex \bottomrule
+tex \end{tabular}
+texdoc close
 
-use "${data}\Individual_balanced_all_RIPS.dta", clear
-keep if (year_grado >= 2011 & year_grado <= 2017)
-drop if (rethus_sexo != 1 & rethus_sexo != 2)
-
-rename 	(urg_np hosp_np service_mental service_mental2) ///
-		(urgnp hospnp mentaldiag mentalEAD)
-
-global d_outcomes 	service consul proce urgnp hospnp urg hosp 	///
-					mentaldiag mentalEAD pregnancy
-
-mat define 		RIPS = J(`rips_row', `column', .)
-mat colnames 	RIPS = $columns
-mat rownames 	RIPS = $rips_rows	
-				
-* All sample
-preserve
-
-	collapse (max) $d_outcomes , by(personabasicaid)
-
-	local f = 1
-	foreach outcome in $d_outcomes {
-		
-		qui sum `outcome'
-		mat RIPS[`f',1] = r(mean)
-		mat RIPS[`f',2] = r(sd)
-		mat RIPS[`f',3] = r(min)
-		mat RIPS[`f',4] = r(max)
-		
-		local mean 		= RIPS[`f',1] * 100
-		texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome') 	///
-		result(`mean') round(0) unit append // Only for internal use. Comment for publication.
-		
-		local ++f
-		
-	}
-
-	qui sum personabasicaid, det
-	mat RIPS[11,1] = r(N)
-
-restore
-
-* * Males
-preserve
-
-	collapse (max) $d_outcomes , by(personabasicaid rethus_sexo)
-
-	local f = 1
-	foreach outcome in $d_outcomes {
-		
-		qui sum `outcome' if rethus_sexo == 1
-		mat RIPS[`f',5] = r(mean)
-		mat RIPS[`f',6] = r(sd)
-		mat RIPS[`f',7] = r(min)
-		mat RIPS[`f',8] = r(max)
-		
-		local mean 		= RIPS[`f',5] * 100
-		texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'M) 	///
-		result(`mean') round(0) unit append // Only for internal use. Comment for publication.
-		local ++f
-		
-	}
-
-	qui sum personabasicaid if rethus_sexo == 1, det
-	mat RIPS[11,5] = r(N)
-
-restore
-
-* Females
-preserve
-
-	collapse (max) $d_outcomes , by(personabasicaid rethus_sexo)
-
-	local f = 1
-	foreach outcome in $d_outcomes {
-		
-		qui sum `outcome' if rethus_sexo == 2
-		mat RIPS[`f',9]  = r(mean)
-		mat RIPS[`f',10] = r(sd)
-		mat RIPS[`f',11] = r(min)
-		mat RIPS[`f',12] = r(max)
-		
-		local mean 		= RIPS[`f',9] * 100
-		texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'F) 	///
-		result(`mean') round(0) unit append // Only for internal use. Comment for publication.
-		local ++f
-		
-	}
-
-	qui sum personabasicaid if rethus_sexo == 2, det
-	mat RIPS[11,9] = r(N)
-
-restore
-
-matlist RIPS
-putexcel set "$tables\Descriptives.xls", sheet("RIPS", replace) modify
-putexcel B2=mat(RIPS), names
-	
 	
 ****************************************************************************
-**#						3. PILA
+**#						2. PILA
 ****************************************************************************
 
 use "${data}\Individual_balanced_all_PILA.dta", clear
@@ -307,142 +226,224 @@ use if (year_grado >= 2011 & year_grado <= 2017) & (rethus_sexo == 1 | rethus_se
 
 sort personabasicaid fecha_pila
 
-rename 	(sal_dias_cot_0 pila_salario_r_0 l_pila_salario_r_0 nro_cotizaciones_0) ///
-		(daysworked wage logwage numberjobs)
+rename 	(sal_dias_cot_0 pila_salario_r_0 posgrado_salud) (daysworked wage postgrad)
 
-global c_outcomes 	daysworked wage logwage numberjobs formal
 
-rename 	(posgrado_salud posgrado_rethus posgrado_rethus_acum p_cotizaciones_0 	///
-		pila_independientes pila_dependientes)									///
-		(postgrad postrethus postaccum simuljobs selfemploy dependent)
+** All sample
+preserve
+
+	collapse (mean) $cp_outcomes (max) $dp_outcomes , by(personabasicaid)
+
+    local f = 1
+	foreach outcome in $cp_outcomes $dp_outcomes {
+
+		if inlist("`outcome'", "wage"){
+			local mean  = strtrim("`:di %11.0fc r(mean)'")
+            local sd    = strtrim("`:di %11.0fc r(sd)'")
+            local nmean = strtrim("`:di %11.0fc r(mean)'")
+		}
+		else if inlist("`outcome'", "daysworked", "edad"){
+			local mean  = strtrim("`:di %5.3fc r(mean)'")
+            local sd    = strtrim("`:di %5.3fc r(sd)'")
+            local nmean = strtrim("`:di %5.2fc r(mean)'")
+		}
+		else{
+			local mean  = strtrim("`:di %5.3fc r(mean)'")
+            local sd    = strtrim("`:di %5.3fc r(sd)'")
+            local nmean = strtrim("`:di %5.2fc r(mean) * 100'")
+		}
+
+		qui sum `outcome'
+		local m_`f'_1  = `mean'
+		local sd_`f'_2 = `sd'
 		
-global d_outcomes 	postgrad postrethus postaccum simuljobs selfemploy dependent edad
+		texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome') 	///
+		result(`nmean') round(0) unit append // Only for internal use. Comment for publication.
+		local ++f
+		
+	}
 
-					
-mat define 		PILA = J(`pila_row', `column', .)
-mat colnames 	PILA = $columns
-mat rownames 	PILA = $pila_rows
+restore
+
+
+*** Gender
+
+collapse (mean) $cp_outcomes (max) $dp_outcomes , by(personabasicaid rethus_sexo)
+
+* Males
+local f = 1
+foreach outcome in $cp_outcomes $dp_outcomes {
+
+    if inlist("`outcome'", "wage"){
+        local mean  = strtrim("`:di %11.0fc r(mean)'")
+        local sd    = strtrim("`:di %11.0fc r(sd)'")
+        local nmean = strtrim("`:di %11.0fc r(mean)'")
+    }
+    else if inlist("`outcome'", "daysworked", "edad"){
+        local mean  = strtrim("`:di %5.3fc r(mean)'")
+        local sd    = strtrim("`:di %5.3fc r(sd)'")
+        local nmean = strtrim("`:di %5.2fc r(mean)'")
+    }
+    else{
+        local mean  = strtrim("`:di %5.3fc r(mean)'")
+        local sd    = strtrim("`:di %5.3fc r(sd)'")
+        local nmean = strtrim("`:di %5.2fc r(mean) * 100'")
+    }
+
+    qui sum `outcome' if rethus_sexo == 1
+    local m_`f'_3  = `mean'
+    local sd_`f'_4 = `sd'
+    
+    texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'M) 	///
+    result(`nmean') round(0) unit append // Only for internal use. Comment for publication.
+    
+    local ++f
+}
+
+
+* Females
+local f = 1
+foreach outcome in $cp_outcomes $dp_outcomes {
+
+    if inlist("`outcome'", "wage"){
+        local mean  = strtrim("`:di %11.0fc r(mean)'")
+        local sd    = strtrim("`:di %11.0fc r(sd)'")
+        local nmean = strtrim("`:di %11.0fc r(mean)'")
+    }
+    else if inlist("`outcome'", "daysworked", "edad"){
+        local mean  = strtrim("`:di %5.3fc r(mean)'")
+        local sd    = strtrim("`:di %5.3fc r(sd)'")
+        local nmean = strtrim("`:di %5.2fc r(mean)'")
+    }
+    else{
+        local mean  = strtrim("`:di %5.3fc r(mean)'")
+        local sd    = strtrim("`:di %5.3fc r(sd)'")
+        local nmean = strtrim("`:di %5.2fc r(mean) * 100'")
+    }
+   
+    qui sum `outcome' if rethus_sexo == 2
+    local m_`f'_5  = `mean'
+    local sd_`f'_6 = `sd'
+
+    texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'F) 	///
+    result(`nmean') round(0) unit append // Only for internal use. Comment for publication.
+    local ++f
+    
+}
+
+
+local new_row = `f' // Save current row position
+		
+
+****************************************************************************
+**#						3. RIPS
+****************************************************************************
+
+use "${data}\Individual_balanced_all_RIPS.dta", clear
+keep if (year_grado >= 2011 & year_grado <= 2017)
+drop if (rethus_sexo != 1 & rethus_sexo != 2)
+
+rename 	service_mental mentaldiag
+				
+local f = `new_row'
 
 * All sample
 preserve
 
-	collapse (mean) $c_outcomes (max) $d_outcomes , by(personabasicaid)
+	collapse (max) $d_outcomes , by(personabasicaid)
 
-	local f = 1
-	foreach outcome in $c_outcomes $d_outcomes {
-
-		if inlist("`outcome'", "wage", "logwage"){
-			local maxim "r(max)"
-			local calcu ": display %11.0fc PILA[`f',1]"
-		}
-		else if inlist("`outcome'", "daysworked", "numberjobs", "edad"){
-			local maxim "r(max)"
-			local calcu ": display %5.2fc PILA[`f',1]"
-		}
-		else{
-			local maxim "r(max)"
-			local calcu "= PILA[`f',1] * 100"
-		}
-
-		qui sum `outcome', det
-		mat PILA[`f',1] = r(mean)
-		mat PILA[`f',2] = r(sd)
-		mat PILA[`f',3] = r(min)
-		mat PILA[`f',4] = `maxim'
+	foreach outcome in $d_outcomes {
 		
-		local mean `calcu'
+		qui sum `outcome'
+		local m_`f'_1  = strtrim("`:di %5.3fc r(mean)'")
+		local sd_`f'_2 = strtrim("`:di %5.3fc r(sd)'")
+		
+		local mean     = `m_`f'_1' * 100
 		texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome') 	///
 		result(`mean') round(0) unit append // Only for internal use. Comment for publication.
+		
 		local ++f
 		
 	}
-		
-	qui sum personabasicaid, det
-	mat PILA[13,1] = r(N)
 
 restore
 
-* Male
-preserve
+** Gender
 
-	collapse (mean) $c_outcomes (max) $d_outcomes , by(personabasicaid rethus_sexo)
+collapse (max) $d_outcomes , by(personabasicaid rethus_sexo)
 
-	local f = 1
-	foreach outcome in $c_outcomes $d_outcomes {
+local f = `new_row'
+foreach outcome in $d_outcomes {
+    
+    * Males
+    qui sum `outcome' if rethus_sexo == 1
+    local m_`f'_3  = strtrim("`:di %5.3fc r(mean)'")
+    local sd_`f'_4 = strtrim("`:di %5.3fc r(sd)'")
+    
+    local mean     = `m_`f'_3' * 100
+    texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'M) 	///
+    result(`mean') round(0) unit append // Only for internal use. Comment for publication.
+    
+    
+    * Females
+    qui sum `outcome' if rethus_sexo == 2
+    local m_`f'_5  = strtrim("`:di %5.3fc r(mean)'")
+    local sd_`f'_6 = strtrim("`:di %5.3fc r(sd)'")
+    
+    local mean     = `m_`f'_5' * 100
+    texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'F) 	///
+    result(`mean') round(0) unit append // Only for internal use. Comment for publication.
+    local ++f
+}
 
-		if inlist("`outcome'", "wage", "logwage"){
-			local maxim "r(max)"
-			local calcu ": display %11.0fc PILA[`f',5]"
-		}
-		else if inlist("`outcome'", "daysworked", "numberjobs", "edad"){
-			local maxim "r(max)"
-			local calcu ": display %5.2fc PILA[`f',5]"
-		}
-		else{
-			local maxim "r(max)"
-			local calcu "= PILA[`f',5] * 100"
-		}
 
-		qui sum `outcome' if rethus_sexo == 1, det
-		mat PILA[`f',5] = r(mean)
-		mat PILA[`f',6] = r(sd)
-		mat PILA[`f',7] = r(min)
-		mat PILA[`f',8] = `maxim'
-		
-		local mean `calcu'
-		texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'M) 	///
-		result(`mean') round(0) unit append // Only for internal use. Comment for publication.
-		local ++f
-		
-	}
-		
-	qui sum personabasicaid, det
-	mat PILA[13,5] = r(N)
 
-restore
+**** Table 2
 
-* Female
-preserve
+labvars $cp_outcomes $dp_outcomes $d_outcomes "Monthly days worked" ///
+"Formal real monthly wage" "Health-related postgrad. enrollment"    ///
+"Age at graduation date" "Accessed a health service"                ///
+"Medical consultations" "Medical procedures" "ER visits"            ///
+"Hospitalizations" "Received mental diagnosis"
 
-	collapse (mean) $c_outcomes (max) $d_outcomes , by(personabasicaid rethus_sexo)
 
-	local f = 1
-	foreach outcome in $c_outcomes $d_outcomes {
+texdoc init "${tables}/table2.tex", replace force	
 
-		if inlist("`outcome'", "wage", "logwage"){
-			local maxim "r(max)"
-			local calcu ": display %11.0fc PILA[`f',9]"
-		}
-		else if inlist("`outcome'", "daysworked", "numberjobs", "edad"){
-			local maxim "r(max)"
-			local calcu ": display %5.2fc PILA[`f',9]"
-		}
-		else{
-			local maxim "r(max)"
-			local calcu "= PILA[`f',9] * 100"
-		}
+tex \begin{tabular}{lcccccc}
+tex \toprule
 
-		qui sum `outcome' if rethus_sexo == 2, det
-		mat PILA[`f',9]  = r(mean)
-		mat PILA[`f',10] = r(sd)
-		mat PILA[`f',11] = r(min)
-		mat PILA[`f',12] = `maxim'
-		
-		local mean `calcu'
-		texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'F) 	///
-		result(`mean') round(0) unit append // Only for internal use. Comment for publication.
-		local ++f
-		
-	}
-		
-	qui sum personabasicaid, det
-	mat PILA[13,9] = r(N)
+tex & \multicolumn{2}{c}{Whole sample} & \multicolumn{2}{c}{Males}     & \multicolumn{2}{c}{Females} \\
+tex \cmidrule(l){2-3} \cmidrule(l){4-5} \cmidrule(l){6-7}
 
-restore
+tex & Mean & SD & Mean & SD & Mean & SD \\
+tex \midrule
 
-matlist PILA
-putexcel set "${tables}\Descriptives.xls", sheet("PILA", replace) modify
-putexcel B2=mat(PILA), names
+
+
+local i = 1
+local j = 1
+foreach var of global cp_outcomes dp_outcomes d_outcomes{
+	
+	if `i' == 1       local panel "tex \multicolumn{9}{l}{\textit{Panel A: PILA (2008-2022)}} \\"
+    else if `i' == 5  local panel "tex \multicolumn{9}{l}{\textit{Panel B: RIPS (2009-2022)}} \\"
+    else              local panel
+    
+    if `j' == 4       local space "\addlinespace"
+    else              local space
+    
+    local lb`var' : variable label `var'
+    
+    `panel'
+	tex `lb`var'' & `m_`i'_1' & `sd_`i'_2' & `m_`i'_3' & `sd_`i'_4' & `m_`i'_5' & `sd_`i'_6' \\ `space'
+	
+    local ++i
+	local ++j
+}
+
+tex \bottomrule
+tex \end{tabular}
+texdoc close
+
 
 
 ****************************************************************************
@@ -534,9 +535,9 @@ global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_
 				p_cotizaciones_0 pila_independientes pila_salario_r_max_0
 
 replace fecha_pila = yofd(dofh(fecha_pila))
-replace birth = yofd(birth)		
+replace birth      = yofd(birth)		
 				
-gen	dist = fecha_pila - birth
+gen	dist           = fecha_pila - birth
 
 collapse (mean) ${outcomes}, by(dist rethus_codigoperfilpre1)
 keep if dist >= 18 & dist <= 67
@@ -575,56 +576,5 @@ foreach outcome in `outcomes' {
 	graph export "${figures}\\`outcome'_by_age.png", replace
 
 }
-
-
-****************************************************************************
-**#						3.3. Additional descriptives
-****************************************************************************
-/*
-* Number of professionals in 2021
-use "${data}\Individual_balanced_all_PILA.dta", clear
-drop if (rethus_sexo != 1 & rethus_sexo != 2)
-
-drop year
-g year = year(dofh(fecha_pila))
-keep if year == 2021
-
-keep personabasicaid year rethus_codigoperfilpre1
-gduplicates drop
-
-foreach ocupacion in P01 P03 P07 P09 {
-	
-	count if rethus_codigoperfilpre1 == "`ocupacion'"
-	
-}
-
-
-* Professionals with only 1 undergraduate degree in our sample
-use  using "${data_rethus}\RETHUS_procesada.dta", clear
-drop if (rethus_sexo != 1 & rethus_sexo != 2)
-
-gen year_grado = year(dofm(fechapregrado))
-keep if inrange(year_grado, 2011, 2017) & substr(rethus_codigoperfilpre1,1,1) == "P"
-
-g one_degree = mi(rethus_codigoperfilpre2)
-g ocupacion  = (rethus_codigoperfilpre1 == "P01" | rethus_codigoperfilpre1 == "P03" | ///
-				rethus_codigoperfilpre1 == "P07" | rethus_codigoperfilpre1 == "P09" )
-g main_sample = one_degree*ocupacion
-sum main_sample
-
-
-* Professionals with only 1 undergraduate degree in total
-use  using "${data_rethus}\RETHUS_procesada.dta", clear
-drop if (rethus_sexo != 1 & rethus_sexo != 2)
-
-gen year_grado = year(dofm(fechapregrado))
-keep if year_grado > 1980 & substr(rethus_codigoperfilpre1,1,1) == "P"
-
-g one_degree = mi(rethus_codigoperfilpre2)
-g ocupacion  = (rethus_codigoperfilpre1 == "P01" | rethus_codigoperfilpre1 == "P03" | ///
-				rethus_codigoperfilpre1 == "P07" | rethus_codigoperfilpre1 == "P09" )
-g main_sample = one_degree*ocupacion
-sum main_sample
-*/
 
 log close
