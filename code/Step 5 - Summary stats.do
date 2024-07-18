@@ -48,6 +48,9 @@ global d_outcomes service consul proce urg hosp mentaldiag // RIPS
 global cp_outcomes 	daysworked wage // PILA
 global dp_outcomes 	postgrad edad   // PILA
 
+* Table 2 rownames
+global t2_outcomes " "Monthly days worked" "Formal real monthly wage" "Health-related postgrad. enrollment" "Age at graduation date" "Accessed a health service" "Medical consultations" "Medical procedures" "ER visits" "Hospitalizations" "Received mental diagnosis" "
+
 set scheme white_tableau
 
 cap log close
@@ -84,15 +87,16 @@ graph export "${figures}\hist_graduates_sample_half.pdf", replace
 * Calculate statistics
 sum profesionales
 local B_1_1 = strtrim("`: di %10.0fc r(N)'")
-local P_1_1 = "(" + strtrim("`:di %5.0f `B_1_1' / `B_1_1' * 100'") + "%)"
+local b_1_1 = r(N)
+local P_1_1 = "(" + strtrim("`:di %5.0f r(N) / `b_1_1' * 100'") + "%)"
 
 sum profesionales if rethus_sexo == 1
 local B_2_1 = strtrim("`: di %10.0fc r(N)'")
-local P_2_1 = "(" + strtrim("`:di %5.2f `B_2_1' / `B_1_1' * 100'") + "%)"
+local P_2_1 = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
 
 sum profesionales if rethus_sexo == 2
 local B_3_1 = strtrim("`: di %10.0fc r(N)'")
-local P_3_1 = "(" + strtrim("`:di %5.2f `B_3_1' / `B_1_1' * 100'") + "%)"
+local P_3_1 = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
 
 texresults3 using "${tables}\numbers.txt", texmacro(samplerethus) 			///
 result(`B_1_1') replace // Only for internal use. Comment for publication.
@@ -109,7 +113,7 @@ foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'")
 	local B_1_`f' = strtrim("`: di %10.0fc r(N)'")
-	local P_1_`f' = "(" + strtrim("`:di %5.2f `B_1_`f'' / `B_1_1' * 100'") + "%)"
+	local P_1_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
 	
 	local mean    = r(N) * 100
 	texresults3 using "${tables}\numbers.txt", texmacro(mean`ocupacion') 	///
@@ -125,7 +129,7 @@ foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'" & rethus_sexo == 1)
 	local B_2_`f' = strtrim("`: di %10.0fc r(N)'")
-	local P_2_`f' = "(" + strtrim("`:di %5.2f `B_2_`f'' / `B_1_1' * 100'") + "%)"
+	local P_2_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
 	
 	local ++f
 	
@@ -137,7 +141,7 @@ foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'" & rethus_sexo == 2)
 	local B_3_`f' = strtrim("`: di %10.0fc r(N)'")
-	local P_3_`f' = "(" + strtrim("`:di %5.2f `B_3_`f'' / `B_1_1' * 100'") + "%)"
+	local P_3_`f' = "(" + strtrim("`:di %5.2f r(N) / `b_1_1' * 100'") + "%)"
 
 	local ++f
 	
@@ -157,20 +161,15 @@ tex \midrule
 
 
 local i = 1
-local j = 1
 foreach var of global rethus_rows{
-	
-	if mod(`i',2) == 1  local labrow "`var'"
-    else                local labrow
     
-    if `j' == 3         local space
+    if `i' == 3         local space
     else                local space "\addlinespace"
     
-	tex `labrow' & `B_`i'_1' & `B_`i'_2' & `B_`i'_3' & `B_`i'_4' & `B_`i'_5' \\
+	tex `var' & `B_`i'_1' & `B_`i'_2' & `B_`i'_3' & `B_`i'_4' & `B_`i'_5' \\
     tex          & `P_`i'_1' & `P_`i'_2' & `P_`i'_3' & `P_`i'_4' & `P_`i'_5' \\ `space'
 	
     local ++i
-    local ++j
 	
 }
 
@@ -237,25 +236,26 @@ preserve
     local f = 1
 	foreach outcome in $cp_outcomes $dp_outcomes {
 
+        qui sum `outcome'
+    
 		if inlist("`outcome'", "wage"){
 			local mean  = strtrim("`:di %11.0fc r(mean)'")
             local sd    = strtrim("`:di %11.0fc r(sd)'")
             local nmean = strtrim("`:di %11.0fc r(mean)'")
 		}
 		else if inlist("`outcome'", "daysworked", "edad"){
-			local mean  = strtrim("`:di %5.3fc r(mean)'")
-            local sd    = strtrim("`:di %5.3fc r(sd)'")
-            local nmean = strtrim("`:di %5.2fc r(mean)'")
+			local mean  = strtrim("`:di %06.3fc r(mean)'")
+            local sd    = strtrim("`:di %06.3fc r(sd)'")
+            local nmean = strtrim("`:di %06.2fc r(mean)'")
 		}
 		else{
-			local mean  = strtrim("`:di %5.3fc r(mean)'")
-            local sd    = strtrim("`:di %5.3fc r(sd)'")
-            local nmean = strtrim("`:di %5.2fc r(mean) * 100'")
+			local mean  = strtrim("`:di %06.3fc r(mean)'")
+            local sd    = strtrim("`:di %06.3fc r(sd)'")
+            local nmean = strtrim("`:di %06.2fc r(mean) * 100'")
 		}
 
-		qui sum `outcome'
-		local m_`f'_1  = `mean'
-		local sd_`f'_2 = `sd'
+		local m_`f'_1  = "`mean'"
+		local sd_`f'_2 = "`sd'"
 		
 		texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome') 	///
 		result(`nmean') round(0) unit append // Only for internal use. Comment for publication.
@@ -274,25 +274,26 @@ collapse (mean) $cp_outcomes (max) $dp_outcomes , by(personabasicaid rethus_sexo
 local f = 1
 foreach outcome in $cp_outcomes $dp_outcomes {
 
+    qui sum `outcome' if rethus_sexo == 1
+
     if inlist("`outcome'", "wage"){
         local mean  = strtrim("`:di %11.0fc r(mean)'")
         local sd    = strtrim("`:di %11.0fc r(sd)'")
         local nmean = strtrim("`:di %11.0fc r(mean)'")
     }
     else if inlist("`outcome'", "daysworked", "edad"){
-        local mean  = strtrim("`:di %5.3fc r(mean)'")
-        local sd    = strtrim("`:di %5.3fc r(sd)'")
-        local nmean = strtrim("`:di %5.2fc r(mean)'")
+        local mean  = strtrim("`:di %06.3fc r(mean)'")
+        local sd    = strtrim("`:di %06.3fc r(sd)'")
+        local nmean = strtrim("`:di %06.2fc r(mean)'")
     }
     else{
-        local mean  = strtrim("`:di %5.3fc r(mean)'")
-        local sd    = strtrim("`:di %5.3fc r(sd)'")
-        local nmean = strtrim("`:di %5.2fc r(mean) * 100'")
+        local mean  = strtrim("`:di %06.3fc r(mean)'")
+        local sd    = strtrim("`:di %06.3fc r(sd)'")
+        local nmean = strtrim("`:di %06.2fc r(mean) * 100'")
     }
 
-    qui sum `outcome' if rethus_sexo == 1
-    local m_`f'_3  = `mean'
-    local sd_`f'_4 = `sd'
+    local m_`f'_3  = "`mean'"
+    local sd_`f'_4 = "`sd'"
     
     texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'M) 	///
     result(`nmean') round(0) unit append // Only for internal use. Comment for publication.
@@ -305,25 +306,26 @@ foreach outcome in $cp_outcomes $dp_outcomes {
 local f = 1
 foreach outcome in $cp_outcomes $dp_outcomes {
 
+    qui sum `outcome' if rethus_sexo == 2
+
     if inlist("`outcome'", "wage"){
         local mean  = strtrim("`:di %11.0fc r(mean)'")
         local sd    = strtrim("`:di %11.0fc r(sd)'")
         local nmean = strtrim("`:di %11.0fc r(mean)'")
     }
     else if inlist("`outcome'", "daysworked", "edad"){
-        local mean  = strtrim("`:di %5.3fc r(mean)'")
-        local sd    = strtrim("`:di %5.3fc r(sd)'")
-        local nmean = strtrim("`:di %5.2fc r(mean)'")
+        local mean  = strtrim("`:di %06.3fc r(mean)'")
+        local sd    = strtrim("`:di %06.3fc r(sd)'")
+        local nmean = strtrim("`:di %06.2fc r(mean)'")
     }
     else{
-        local mean  = strtrim("`:di %5.3fc r(mean)'")
-        local sd    = strtrim("`:di %5.3fc r(sd)'")
-        local nmean = strtrim("`:di %5.2fc r(mean) * 100'")
+        local mean  = strtrim("`:di %06.3fc r(mean)'")
+        local sd    = strtrim("`:di %06.3fc r(sd)'")
+        local nmean = strtrim("`:di %06.2fc r(mean) * 100'")
     }
    
-    qui sum `outcome' if rethus_sexo == 2
-    local m_`f'_5  = `mean'
-    local sd_`f'_6 = `sd'
+    local m_`f'_5  = "`mean'"
+    local sd_`f'_6 = "`sd'"
 
     texresults3 using "${tables}\numbers.txt", texmacro(mean`outcome'F) 	///
     result(`nmean') round(0) unit append // Only for internal use. Comment for publication.
@@ -399,9 +401,6 @@ foreach outcome in $d_outcomes {
 
 
 **** Table 2
-global t2_outcomes " "Monthly days worked""Formal real monthly wage" "Health-related postgrad. enrollment" "Age at graduation date" "Accessed a health service""Medical consultations" "Medical procedures" "ER visits" "Hospitalizations" "Received mental diagnosis" "
-
-
 texdoc init "${tables}/table2.tex", replace force	
 
 tex \begin{tabular}{lcccccc}
