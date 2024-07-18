@@ -62,7 +62,7 @@ log using "${root}\Logs\Step_5.smcl", replace
 ****************************************************************************
 **#						1. RETHUS
 ****************************************************************************
-
+"(" + strltrim("`:di `fmt' r(table)["se",1]'") + ")"
 use "${data}\master_rethus.dta", clear
 
 gen profesionales = 1
@@ -76,23 +76,22 @@ keep if inrange(year_grado, 2011, 2017)
 drop if (rethus_sexo != 1 & rethus_sexo != 2)
 
 sum profesionales
-mat table1[1,1] = r(N)
-mat table1[1,2] = table1[1,1] / table1[1,1]
+local B_1_1 = r(N)
+local P_1_1 = `B_1_1' / `B_1_1'
 
 sum profesionales if rethus_sexo == 1
-mat table1[1,3] = r(N)
-mat table1[1,4] = table1[1,3] / table1[1,1]
+local B_2_1 = r(N)
+local P_2_1 = `B_2_1' / `B_1_1'
 
 sum profesionales if rethus_sexo == 2
-mat table1[1,5] = r(N)
-mat table1[1,6] = table1[1,5] / table1[1,1]
+local B_3_1 = r(N)
+local P_3_1 = `B_3_1' / `B_1_1'
 
-
-count
-local rethus: dis %10.0fc r(N)
+if mod(i,2) == 0 -> local bla "\addlinespace"
+if mod == 1 -> local bla
 
 texresults3 using "${tables}\numbers.txt", texmacro(samplerethus) 			///
-result(`rethus') replace // Only for internal use. Comment for publication.
+result(`B_1_1') replace // Only for internal use. Comment for publication.
 
 replace rethus_codigoperfilpre1 = "Bact" 	if rethus_codigoperfilpre1 == "P01"
 replace rethus_codigoperfilpre1 = "Phys" 	if rethus_codigoperfilpre1 == "P07"
@@ -104,8 +103,8 @@ local f = 2
 foreach ocupacion in $ocupaciones {
 	
 	sum profesionales if (rethus_codigoperfilpre1 == "`ocupacion'")
-	mat table1[`f',1] = r(N)
-	mat table1[`f',2] = table1[`f',1] / table1[1,1]
+	local B = r(N)
+	mat table1[`f',2] = table1[`f',1] / `B_1_1'
 	
 	local mean 		  = table1[`f',2] * 100
 	texresults3 using "${tables}\numbers.txt", texmacro(mean`ocupacion') 	///
