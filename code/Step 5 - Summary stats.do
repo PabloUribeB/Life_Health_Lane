@@ -31,10 +31,10 @@ else {
 	global pc "\\sm093119"
 }
 
-global root "${pc}\Proyectos\Banrep research\Returns to Health Sector"
+global data "${pc}\Proyectos\Banrep research\Returns to Health Sector\Data"
+global root 	"Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
 
 global logs 	"${root}\Logs"
-global data 	"${root}\Data"
 global tables 	"${root}\Tables"
 global figures 	"${root}\Figures"
 
@@ -111,7 +111,7 @@ foreach ocupacion in $ocupaciones {
 	local B_1_`f' = strtrim("`: di %10.0fc r(N)'")
 	local P_1_`f' = "(" + strtrim("`:di %5.2f `B_1_`f'' / `B_1_1' * 100'") + "%)"
 	
-	local mean    = `B_1_`f'' * 100
+	local mean    = r(N) * 100
 	texresults3 using "${tables}\numbers.txt", texmacro(mean`ocupacion') 	///
 	result(`mean') round(0) unit append // Only for internal use. Comment for publication.
 	
@@ -399,12 +399,7 @@ foreach outcome in $d_outcomes {
 
 
 **** Table 2
-
-labvars $cp_outcomes $dp_outcomes $d_outcomes "Monthly days worked" ///
-"Formal real monthly wage" "Health-related postgrad. enrollment"    ///
-"Age at graduation date" "Accessed a health service"                ///
-"Medical consultations" "Medical procedures" "ER visits"            ///
-"Hospitalizations" "Received mental diagnosis"
+global t2_outcomes " "Monthly days worked""Formal real monthly wage" "Health-related postgrad. enrollment" "Age at graduation date" "Accessed a health service""Medical consultations" "Medical procedures" "ER visits" "Hospitalizations" "Received mental diagnosis" "
 
 
 texdoc init "${tables}/table2.tex", replace force	
@@ -422,7 +417,7 @@ tex \midrule
 
 local i = 1
 local j = 1
-foreach var of global cp_outcomes dp_outcomes d_outcomes{
+foreach var of global t2_outcomes {
 	
 	if `i' == 1       local panel "tex \multicolumn{9}{l}{\textit{Panel A: PILA (2008-2022)}} \\"
     else if `i' == 5  local panel "tex \multicolumn{9}{l}{\textit{Panel B: RIPS (2009-2022)}} \\"
@@ -431,10 +426,9 @@ foreach var of global cp_outcomes dp_outcomes d_outcomes{
     if `j' == 4       local space "\addlinespace"
     else              local space
     
-    local lb`var' : variable label `var'
     
     `panel'
-	tex `lb`var'' & `m_`i'_1' & `sd_`i'_2' & `m_`i'_3' & `sd_`i'_4' & `m_`i'_5' & `sd_`i'_6' \\ `space'
+	tex `var' & `m_`i'_1' & `sd_`i'_2' & `m_`i'_3' & `sd_`i'_4' & `m_`i'_5' & `sd_`i'_6' \\ `space'
 	
     local ++i
 	local ++j
@@ -475,11 +469,11 @@ preserve
 	gen graduates = 1
 
 	gen w_range = .
-	replace w_range = 1 if (pila_salario_r <= mw)
-	replace w_range = 2 if (pila_salario_r >  mw		& pila_salario_r <= (mw * 2))
-	replace w_range = 3 if (pila_salario_r > (mw * 2) 	& pila_salario_r <= (mw * 3))
-	replace w_range = 4 if (pila_salario_r > (mw * 3)  	& pila_salario_r <= (mw * 5))
-	replace w_range = 5 if (pila_salario_r > (mw * 5))
+	replace w_range = 1 if (pila_salario_r_0 <= mw)
+	replace w_range = 2 if (pila_salario_r_0 >  mw		& pila_salario_r_0 <= (mw * 2))
+	replace w_range = 3 if (pila_salario_r_0 > (mw * 2) 	& pila_salario_r_0 <= (mw * 3))
+	replace w_range = 4 if (pila_salario_r_0 > (mw * 3)  	& pila_salario_r_0 <= (mw * 5))
+	replace w_range = 5 if (pila_salario_r_0 > (mw * 5))
 	
 	collapse (sum) graduates, by(rethus_codigoperfilpre1 fecha_pila w_range)
 	format fecha_pila %th
@@ -491,11 +485,11 @@ restore
 
 
 * Count people by salary range
-gen w_range_1 = (pila_salario_r <= mw)
-gen w_range_2 = (pila_salario_r >  mw		& pila_salario_r <= (mw * 2))
-gen w_range_3 = (pila_salario_r > (mw * 2)  & pila_salario_r <= (mw * 3))
-gen w_range_4 = (pila_salario_r > (mw * 3)  & pila_salario_r <= (mw * 5))
-gen w_range_5 = (pila_salario_r > (mw * 5))
+gen w_range_1 = (pila_salario_r_0 <= mw)
+gen w_range_2 = (pila_salario_r_0 >  mw		& pila_salario_r_0 <= (mw * 2))
+gen w_range_3 = (pila_salario_r_0 > (mw * 2)  & pila_salario_r_0 <= (mw * 3))
+gen w_range_4 = (pila_salario_r_0 > (mw * 3)  & pila_salario_r_0 <= (mw * 5))
+gen w_range_5 = (pila_salario_r_0 > (mw * 5))
 
 collapse (sum) w_range*, by(rethus_codigoperfilpre1 fecha_pila)
 sort fecha_pila
