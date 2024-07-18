@@ -16,35 +16,24 @@
 
 version 17
 
-****************************************************************************
-* Globals
-****************************************************************************
-
-* Working directory
-if "`c(hostname)'" == "SM201439"{
-	global pc "C:"
-}
-
-else {
-	global pc "\\sm093119"
-}
-
 cap which repkit  
 if _rc == 111{
     ssc install repkit
 }
 
-global user "`c(username)'"
+****************************************************************************
+* Globals
+****************************************************************************
 
 * Set path to reproducibility package (where ado and code are located)
-global main "C:\Users\${user}\Documents\GitHub\Life_Health_Lane"
+global main "Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
 
 * Point adopath to the ado folder in the reproducibility package
 repado, adopath("${main}/ado") mode(strict)
 
 
-** REVISAR ESTO DEPENDIENDO DE CÓMO SETTEAMOS EL GITHUB EN BANREP
-global do_files "${pc}\Proyectos\Banrep research\Returns to Health Sector\Dofiles"
+* Code folder within rep package
+global do_files "${main}\code"
 
 
 
