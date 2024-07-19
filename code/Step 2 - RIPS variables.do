@@ -29,9 +29,9 @@ else {
 	global pc "\\sm093119"
 }
 
-global data 	 "${pc}\Proyectos\Banrep research\Returns to Health Sector\Data"
-global logs 	 "${pc}\Proyectos\Banrep research\Returns to Health Sector\Logs"
+global data      "${pc}\Proyectos\Banrep research\Returns to Health Sector\Data"
 global urgencias "${pc}\Proyectos\Banrep research\More_than_a_Healing\Data"
+global logs      "Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Logs"
 
 
 cap log close
@@ -40,7 +40,7 @@ log using "${logs}\RIPS_variables.smcl", replace
 ********************************************************************************
 **#                   1. Append annual datasets          
 ********************************************************************************
-/*
+
 clear all
 gen aux = .
 save "$data\Merge_individual_RIPS.dta", replace
@@ -68,7 +68,7 @@ forval y = 2009/2022 {
 	
 	erase "${data}\RIPS\sample_`y'_RIPS.dta"
 }
-*/
+
 
 use "${data}\Merge_individual_RIPS.dta", clear
 

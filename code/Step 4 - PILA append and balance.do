@@ -33,9 +33,10 @@ else {
 global root "${pc}\Proyectos\Banrep research\Returns to Health Sector"
 
 global data "${root}\Data"
+global logs "Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Logs"
 
 cap log close
-log using "${root}\Logs\Step_4.smcl", replace
+log using "${logs}\Step_4.smcl", replace
 
 
 ****************************************************************************
