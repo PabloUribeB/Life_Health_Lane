@@ -32,11 +32,12 @@ else {
 	global pc "\\sm093119"
 }
 
-global data_rethus 	"${pc}\Proyectos\Banrep research\f_ReturnsToEducation Health sector\Data"
-global data 		"${pc}\Proyectos\Banrep research\Returns to Health Sector\Data"
+global data_rethus  "${pc}\Proyectos\Banrep research\f_ReturnsToEducation Health sector\Data"
+global data         "${pc}\Proyectos\Banrep research\Returns to Health Sector\Data"
+global logs         "Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Logs"
 
 cap log close
-log using "${pc}\Proyectos\Banrep research\Returns to Health Sector\Logs\Rethus-Pila.smcl", replace
+log using "${logs}\Rethus-Pila.smcl", replace
 
 
 ****************************************************************************

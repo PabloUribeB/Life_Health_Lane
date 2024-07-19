@@ -23,8 +23,20 @@
 clear all
 set more off
 
-global tables	"~\Dropbox\EH_Papers\Education Paper\Tables"
-global figures	"~\Dropbox\EH_Papers\Education Paper\Figures"
+if inlist("`c(username)'", "Pablo Uribe", "danie", "pu42") {
+    
+    global root	"~\Documents\GitHub\Life_Health_Lane\Tables"
+    global figures	"~\Documents\GitHub\Life_Health_Lane\Figures"
+    
+}
+else {
+    
+    global root	"Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
+    
+}
+
+global tables  "${root}\Tables"
+global figures "${root}\Figures"
 
 
 set scheme white_tableau
