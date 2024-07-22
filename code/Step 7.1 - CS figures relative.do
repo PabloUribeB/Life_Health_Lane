@@ -25,8 +25,7 @@ set more off
 
 if inlist("`c(username)'", "Pablo Uribe", "danie", "pu42") {
     
-    global root	"~\Documents\GitHub\Life_Health_Lane\Tables"
-    global figures	"~\Documents\GitHub\Life_Health_Lane\Figures"
+    global root	"~\Documents\GitHub\Life_Health_Lane"
     
 }
 else {
