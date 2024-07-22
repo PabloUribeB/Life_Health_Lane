@@ -418,8 +418,8 @@ local i = 1
 local j = 1
 foreach var of global t2_outcomes {
 	
-	if `i' == 1       local panel "tex \multicolumn{9}{l}{\textit{Panel A: PILA (2008-2022)}} \\"
-    else if `i' == 5  local panel "tex \multicolumn{9}{l}{\textit{Panel B: RIPS (2009-2022)}} \\"
+	if `i' == 1       local panel "tex \multicolumn{7}{l}{\textit{Panel A: PILA (2008-2022)}} \\"
+    else if `i' == 5  local panel "tex \multicolumn{7}{l}{\textit{Panel B: RIPS (2009-2022)}} \\"
     else              local panel
     
     if `j' == 4       local space "\addlinespace"
