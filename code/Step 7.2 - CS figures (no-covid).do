@@ -111,8 +111,8 @@ gen dist2 = dist
 drop if (dist < -2 & pila_outcome == 0)
 drop if (dist < -4 & pila_outcome == 1)
 
-drop if (dist >  4 & pila_outcome == 0)
-drop if (dist >  9 & pila_outcome == 1)
+drop if (dist >  3 & pila_outcome == 0)
+drop if (dist >  8 & pila_outcome == 1)
 
 sort outcome occupation gender dist
 
@@ -282,7 +282,7 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P03" & outcome == "`outcome'"), mlc(gs9)     mfc(gs9)    m(S) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(medsmall)),		///
-				xlabel(-2(1)4, nogrid labsize(small))	 																							 	///
+				xlabel(-2(1)3, nogrid labsize(small))	 																							 	///
 				ylabel(`ylabel', angle(h) format(%10.3fc) labsize(small))																				///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -369,7 +369,7 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P03" & outcome == "`outcome'"), mlc(gs9)     mfc(gs9)    m(S) msize(small))			///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)9, nogrid labsize(vsmall))																									///
+				xlabel(-4(1)8, nogrid labsize(vsmall))																									///
 				ylabel(`ylabel', angle(h) format(%`e'fc) labsize(small)) `yscale'																		///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -436,7 +436,7 @@ foreach outcome in `outcomes' {
 				(rspike ci_lower ci_upper dist 	if (occupation == "P09" & outcome == "`outcome'"), lcolor(gs1)  color(gs1)  lp(solid))					///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)9, nogrid labsize(vsmall))																									///
+				xlabel(-4(1)8, nogrid labsize(vsmall))																									///
 				ylabel(`ylabel', angle(h) format(%`e'fc) labsize(small)) `yscale'																		///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -536,7 +536,7 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P03" & outcome == "`outcome'"), mlc(gs9)     mfc(gs9)    m(S) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(medsmall)),		///
-				xlabel(-2(1)4, nogrid labsize(small))	 																							 	///
+				xlabel(-2(1)3, nogrid labsize(small))	 																							 	///
 				ylabel(#10, angle(h) format(%9.3fc) labsize(small))																						///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -597,7 +597,7 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P03" & outcome == "`outcome'"), mlc(gs9)     mfc(gs9)    m(S) msize(small))			///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)9, nogrid labsize(vsmall))																									///
+				xlabel(-4(1)8, nogrid labsize(vsmall))																									///
 				ylabel(#10, angle(h) format(%`e'fc) labsize(small))																						///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -637,7 +637,7 @@ foreach outcome in `outcomes' {
 				(rspike ci_lower ci_upper dist 	if (occupation == "P09" & outcome == "`outcome'"), lcolor(gs1)  color(gs1)  lp(solid))					///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)9, nogrid labsize(vsmall))																									///
+				xlabel(-4(1)8, nogrid labsize(vsmall))																									///
 				ylabel(#10, angle(h) format(%`e'fc) labsize(small))																						///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -651,47 +651,5 @@ foreach outcome in `outcomes' {
 }
 
 
-****************************************************************************
-**#						5. Extra descriptives
-****************************************************************************
-
-use "${tables}\wage_ages", clear
-rename edad dist
-keep if dist >= 18 & dist <= 67
-
-local outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 		///
-				p_cotizaciones_0 pila_independientes pila_salario_r_max_0
-				
-foreach outcome in `outcomes' {
-
-	if "`outcome'" == "pila_salario_r_0" | "`outcome'" == "pila_salario_r_max_0" {		
-		local e = "12.0"
-	} 
-	else if "`outcome'" == "sal_dias_cot_0" {	
-		local e = "12.0"
-	}
-	else {		
-		local e = "5.2"	
-	}
-
-	twoway 	(line `outcome' dist if (rethus_codigoperfilpre1 == "P01"), lc(gs11))		///
-			(line `outcome' dist if (rethus_codigoperfilpre1 == "P03"), lc(gs9) )		///
-			(line `outcome' dist if (rethus_codigoperfilpre1 == "P07"), lc(gs6) )		///
-			(line `outcome' dist if (rethus_codigoperfilpre1 == "P09"), lc(gs1) ),		///
-			xlabel(18(1)67, nogrid labsize(vsmall))	 						 			///
-			ylabel(#10, angle(h) format(%`e'fc) labsize(small))							///
-			xline(24, lcolor(gs10))														///
-			xline(47, lcolor(gs10))														///
-			xline(52, lcolor(gs10))														///
-			xtitle("Age")																///
-			ytitle("`outcome'")															///
-			graphregion(fcolor(white))													///
-			legend(order(	4 "Dentists" 	3 "Physicians"								///
-							2 "Nurses" 		1 "Bacteriologists")						///
-							position(6) col(4))
-	
-	graph export "${figures}\Old professionals\\`outcome'.png", replace
-
-}
 
 
