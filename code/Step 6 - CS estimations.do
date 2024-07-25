@@ -14,28 +14,11 @@
 4) Output:	- CS_results.dta
 *************************************************************************
 *************************************************************************/	
-
+clear all
 
 ****************************************************************************
 *Globals
 ****************************************************************************
-
-// Working directory
-if "`c(hostname)'" == "SM201439"{
-	global pc "C:"
-}
-
-else {
-	global pc "\\sm093119"
-}
-
-global data "${pc}\Proyectos\Banrep research\Returns to Health Sector\Data"
-global root "Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
-
-global logs 	"${root}\Logs"
-global tables 	"${root}\Tables"
-global figures 	"${root}\Figures"
-
 
 cap log close
 log using "${logs}\CS_estimation.smcl", replace
@@ -100,7 +83,7 @@ foreach ocupacion in $ocupaciones {
 			estat event, post	// Aggregate estimation like an event-study
 			
 			* Save results in a dta file
-			regsave using "${tables}\CS_results", `replace' ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
+			regsave using "${output}\CS_results", `replace' ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
 			
 			csdid2 , clear
 			
@@ -166,7 +149,7 @@ foreach ocupacion in $ocupaciones {
 			estat event, post 	// Aggregate estimation like an event-study
 			
 			* Save results in a dta file
-			regsave using "${tables}\CS_results", append ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
+			regsave using "${output}\CS_results", append ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
 			
 			csdid2 , clear
 			
@@ -242,7 +225,7 @@ foreach ocupacion in $ocupaciones {
 			estat event, post	// Aggregate estimation like an event-study
 			
 			* Save results in a dta file
-			regsave using "${tables}\CS_results", append ci level(95) addlabel(outcome, `outcome'_np, occupation, `ocupacion', gender, `gender', mean, `mean')
+			regsave using "${output}\CS_results", append ci level(95) addlabel(outcome, `outcome'_np, occupation, `ocupacion', gender, `gender', mean, `mean')
 			
 			csdid2 , clear
 
@@ -317,7 +300,7 @@ foreach ocupacion in $ocupaciones {
 				estat event, post	// Aggregate estimation like an event-study
 				
 				* Save results in a dta file
-				regsave using "${tables}\CS_results", append ci level(95) addlabel(outcome, `outcome'_`posgrado', occupation, `ocupacion', gender, `gender', mean, `mean')
+				regsave using "${output}\CS_results", append ci level(95) addlabel(outcome, `outcome'_`posgrado', occupation, `ocupacion', gender, `gender', mean, `mean')
 				
 				csdid2 , clear
 				
@@ -385,7 +368,7 @@ foreach ocupacion in $ocupaciones {
 			estat event, post	// Aggregate estimation like an event-study
 			
 			* Save results in a dta file
-			regsave using "${tables}\CS_results_nocovid", `replace' ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
+			regsave using "${output}\CS_results_nocovid", `replace' ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
 			
 			csdid2 , clear
 			
@@ -460,7 +443,7 @@ foreach ocupacion in $ocupaciones {
 			estat event, post	// Aggregate estimation like an event-study
 			
 			* Save results in a dta file
-			regsave using "${tables}\CS_results_nocovid", append ci level(95) addlabel(outcome, `outcome'_np, occupation, `ocupacion', gender, `gender', mean, `mean')
+			regsave using "${output}\CS_results_nocovid", append ci level(95) addlabel(outcome, `outcome'_np, occupation, `ocupacion', gender, `gender', mean, `mean')
 			
 			csdid2 , clear
 
@@ -517,7 +500,7 @@ foreach ocupacion in $ocupaciones {
 			estat event, post 	// Aggregate estimation like an event-study
 			
 			* Save results in a dta file
-			regsave using "${tables}\CS_results_nocovid", append ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
+			regsave using "${output}\CS_results_nocovid", append ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
 			
 			csdid2 , clear
 			

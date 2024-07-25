@@ -14,29 +14,11 @@
 4) Output:	- One graph per variable in globals
 *************************************************************************
 *************************************************************************/	
-
+clear all
 
 ****************************************************************************
 *Globals
 ****************************************************************************
-
-clear all
-set more off
-
-if inlist("`c(username)'", "Pablo Uribe", "danie", "pu42") {
-    
-    global root	"~\Documents\GitHub\Life_Health_Lane"
-    
-}
-else {
-    
-    global root	"Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
-    
-}
-
-global tables  "${root}\Tables"
-global figures "${root}\Figures"
-
 
 set scheme white_tableau
 
@@ -44,7 +26,7 @@ set scheme white_tableau
 **#						1. Processing
 ****************************************************************************
 
-use "${tables}\CS_Results.dta", clear
+use "${output}\CS_Results.dta", clear
 drop if var == "Pre_avg" | var == "Post_avg"
 
 gen 	dist 		= substr(var, 3, 1) if (strlen(var) == 3)
