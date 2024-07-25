@@ -25,11 +25,23 @@ if _rc == 111{
 * Globals
 ****************************************************************************
 
+clear all
+set more off
+
 * Set path to reproducibility package (where ado and code are located)
-global main "Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
+if inlist("`c(username)'", "Pablo Uribe", "danie", "pu42") {
+    
+    global main	"~\Documents\GitHub\Life_Health_Lane"
+    
+}
+else {
+    
+    global main	"Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
+    
+}
 
 * Point adopath to the ado folder in the reproducibility package
-repado, adopath("${main}/ado") mode(strict)
+repado, adopath("${main}\ado") mode(strict)
 
 
 * Code folder within rep package
@@ -49,4 +61,4 @@ do "${do_files}\Step 5 - Summary stats.do"
 do "${do_files}\Step 6 - CS estimations.do"
 do "${do_files}\Step 7 - CS figures.do"
 do "${do_files}\Step 7.1 - CS figures relative.do"
-do "${do_files}\Step 7.3 - CS figures (no-covid).do"
+do "${do_files}\Step 7.2 - CS figures (no-covid).do"
