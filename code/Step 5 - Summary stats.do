@@ -16,29 +16,11 @@
 			- Descriptives.xls
 *************************************************************************
 *************************************************************************/	
-
+clear all
 
 ****************************************************************************
 *Globals and matrices rows and columns
 ****************************************************************************
-
-* Working directory
-if "`c(hostname)'" == "SM201439"{
-	global pc "C:"
-}
-
-else {
-	global pc "\\sm093119"
-}
-
-global data "${pc}\Proyectos\Banrep research\Returns to Health Sector\Data"
-global root 	"Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
-
-global logs 	"${root}\Logs"
-global tables 	"${root}\Tables"
-global figures 	"${root}\Figures"
-
-global data_rethus 	"${pc}\Proyectos\Banrep research\f_ReturnsToEducation Health sector\Data"
 
 global ocupaciones Bact Nurse Phys Dent                   // Rethus
 global rethus_rows " "Whole sample"  "Males" "Females" "  // Rethus
@@ -54,7 +36,7 @@ global t2_outcomes " "Monthly days worked" "Formal real monthly wage" "Health-re
 set scheme white_tableau
 
 cap log close
-log using "${root}\Logs\Step_5.smcl", replace
+log using "${logs}\Step_5.smcl", replace
 
 
 ****************************************************************************
@@ -477,8 +459,8 @@ preserve
 	collapse (sum) graduates, by(rethus_codigoperfilpre1 fecha_pila w_range)
 	format fecha_pila %th
     
-	save "${tables}\wage_ranges", replace
-	export excel using "${tables}\wage_ranges.xlsx", firstrow(variables) sheet("All") sheetreplace
+	save "${output}\wage_ranges", replace
+	export excel using "${output}\wage_ranges.xlsx", firstrow(variables) sheet("All") sheetreplace
 
 restore
 
@@ -494,8 +476,8 @@ collapse (sum) w_range*, by(rethus_codigoperfilpre1 fecha_pila)
 sort fecha_pila
 order fecha_pila
 
-save "${tables}\wage_ranges", replace
-export excel using "${tables}\wage_ranges.xlsx", firstrow(variables) sheet("All") sheetreplace
+save "${output}\wage_ranges", replace
+export excel using "${output}\wage_ranges.xlsx", firstrow(variables) sheet("All") sheetreplace
 
 
 ****************************************************************************
