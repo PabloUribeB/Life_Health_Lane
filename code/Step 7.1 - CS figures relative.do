@@ -279,7 +279,7 @@ foreach outcome in `outcomes' {
 				graphregion(fcolor(white))																												
 																				
 			
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.png", replace
+		graph export "${figures}\Callaway SantAnna (Relative)\ES_`outcome'_`gender'_relative.png", replace
 	
 		restore
 		
@@ -365,7 +365,7 @@ foreach outcome in `outcomes' {
 								6 "Nurses" 		"Mean: `mean_P03'" 	5 "Bacteriologists" "Mean: `mean_P01'") position(6) col(4))							///
 				graphregion(fcolor(white)) graphr(margin(t+5))
 				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_`gender'_relative.png", replace
+		graph export "${figures}\Callaway SantAnna (Relative)\ES_`outcome'_`gender'_relative.png", replace
 		
 		restore
 		
@@ -467,7 +467,7 @@ foreach outcome in `outcomes' {
 				graphregion(fcolor(white))																												
 																				
 			
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.png", replace
+		graph export "${figures}\Callaway SantAnna (Relative)\ES_`outcome'_gap_relative.png", replace
 	
 }
 	
@@ -527,7 +527,7 @@ foreach outcome in `outcomes' {
 								6 "Nurses" 		"Mean: `mean_P03'" 	5 "Bacteriologists" "Mean: `mean_P01'") position(6) col(4))							///
 				graphregion(fcolor(white))																												
 				
-		graph export "${figures}\Callaway SantAnna\ES_`outcome'_gap_relative.png", replace
+		graph export "${figures}\Callaway SantAnna (Relative)\ES_`outcome'_gap_relative.png", replace
 		
 }	
 
