@@ -30,7 +30,7 @@ global genders all female male
 ****************************************************************************
 **# 					1. PILA estimation
 ****************************************************************************
-/*
+
 * Specify outcomes in global outcomes
 global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 			///
 				posgrado_rethus posgrado_rethus_acum p_cotizaciones_0 nro_cotizaciones_0 	///
@@ -51,7 +51,7 @@ foreach ocupacion in $ocupaciones {
 			replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
 			
 			keep if rethus_codigoperfilpre1 == "`ocupacion'"
-			keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1
+			keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 year_birth
 			
 			if "`gender'" == "all" {
 				dis as err "All"
@@ -71,14 +71,14 @@ foreach ocupacion in $ocupaciones {
 			
 			dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
 			
-			csdid2 `outcome',			///
-			i(personabasicaid) 			/// panel id variable
-			t(fecha_pila) 				/// Time variable
-			gvar(fechapregrado) 		/// Treatment time
-			notyet 						/// Use not-yet treated as comparison
-			long2 						/// Calculate results relative to -1
-			asinr 						/// Calculate pre-treatment results as in R
-			method(drimp)				// Use doubly robust improved method
+			csdid2 `outcome' i.year_birth, 	///
+			i(personabasicaid) 				/// panel id variable
+			t(fecha_pila) 					/// Time variable
+			gvar(fechapregrado) 			/// Treatment time
+			notyet 							/// Use not-yet treated as comparison
+			long2 							/// Calculate results relative to -1
+			asinr 							/// Calculate pre-treatment results as in R
+			method(drimp)					// Use doubly robust improved method
 			
 			estat event, post	// Aggregate estimation like an event-study
 			
@@ -100,6 +100,13 @@ foreach ocupacion in $ocupaciones {
 **# 					2. RIPS estimation
 ****************************************************************************
 
+* Birth
+use if 		personabasicaid year_birth using "${data}\Individual_balanced_all_PILA", clear
+gsort 		personabasicaid year_birth
+gduplicates drop personabasicaid, force
+tempfile 	births
+save 		`births'
+
 * Specify outcomes in global outcomes
 global outcomes diag_mental diag_mental2 service_mental service_mental2 ///
 				urg hosp urg_np hosp_np pregnancy service cons_mental 	///
@@ -115,6 +122,9 @@ foreach ocupacion in $ocupaciones {
 	
 			use personabasicaid year_grado year_RIPS fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 if inrange(year_grado,2011,2017) & rethus_codigoperfilpre1 == "`ocupacion'" using "${data}\Individual_balanced_all_RIPS", clear
 			drop if (rethus_sexo != 1 & rethus_sexo != 2)
+			
+			* Merge birth year
+			merge m:1 personabasicaid using `births', keep(1 3) nogen
 			
 			*mdesc fechapregrado
 			replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
@@ -137,14 +147,14 @@ foreach ocupacion in $ocupaciones {
 			
 			dis as err "Running event study for RIPS `ocupacion' in `outcome' for gender `gender'"	
 		
-			csdid2 `outcome', 			///
-			i(personabasicaid) 			/// panel id variable
-			t(year_RIPS) 				/// Time variable
-			gvar(year_grado) 			/// Treatment time
-			notyet 						/// Use not-yet treated as comparison
-			long2 						/// Calculate results relative to -1
-			asinr 						/// Calculate pre-treatment results as in R
-			method(drimp)				// Use doubly robust improved method
+			csdid2 `outcome' i.year_birth, 	///
+			i(personabasicaid) 				/// panel id variable
+			t(year_RIPS) 					/// Time variable
+			gvar(year_grado) 				/// Treatment time
+			notyet 							/// Use not-yet treated as comparison
+			long2 							/// Calculate results relative to -1
+			asinr 							/// Calculate pre-treatment results as in R
+			method(drimp)					// Use doubly robust improved method
 			
 			estat event, post 	// Aggregate estimation like an event-study
 			
@@ -193,7 +203,7 @@ foreach ocupacion in $ocupaciones {
 			replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
 			
 			keep if rethus_codigoperfilpre1 == "`ocupacion'"
-			keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1
+			keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 year_birth
 			
 			if "`gender'" == "all" {
 				dis as err "All"
@@ -213,14 +223,14 @@ foreach ocupacion in $ocupaciones {
 			
 			dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
 			
-			csdid2 `outcome',			///
-			i(personabasicaid) 			/// panel id variable
-			t(fecha_pila) 				/// Time variable
-			gvar(fechapregrado) 		/// Treatment time
-			notyet 						/// Use not-yet treated as comparison
-			long2 						/// Calculate results relative to -1
-			asinr 						/// Calculate pre-treatment results as in R
-			method(drimp)				// Use doubly robust improved method
+			csdid2 `outcome' i.year_birth,	///
+			i(personabasicaid) 				/// panel id variable
+			t(fecha_pila) 					/// Time variable
+			gvar(fechapregrado) 			/// Treatment time
+			notyet 							/// Use not-yet treated as comparison
+			long2 							/// Calculate results relative to -1
+			asinr 							/// Calculate pre-treatment results as in R
+			method(drimp)					// Use doubly robust improved method
 			
 			estat event, post	// Aggregate estimation like an event-study
 			
@@ -259,7 +269,7 @@ foreach ocupacion in $ocupaciones {
 				replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
 				
 				keep if rethus_codigoperfilpre1 == "`ocupacion'"
-				keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 posgrado_salud
+				keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 posgrado_salud year_birth
 				
 				if "`gender'" == "all" {
 					dis as err "All"
@@ -288,14 +298,14 @@ foreach ocupacion in $ocupaciones {
 				
 				dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
 				
-				csdid2 `outcome',			///
-				i(personabasicaid) 			/// panel id variable
-				t(fecha_pila) 				/// Time variable
-				gvar(fechapregrado) 		/// Treatment time
-				notyet 						/// Use not-yet treated as comparison
-				long2 						/// Calculate results relative to -1
-				asinr 						/// Calculate pre-treatment results as in R
-				method(drimp)				// Use doubly robust improved method
+				csdid2 `outcome' i.year_birth,	///
+				i(personabasicaid) 				/// panel id variable
+				t(fecha_pila) 					/// Time variable
+				gvar(fechapregrado) 			/// Treatment time
+				notyet 							/// Use not-yet treated as comparison
+				long2 							/// Calculate results relative to -1
+				asinr 							/// Calculate pre-treatment results as in R
+				method(drimp)					// Use doubly robust improved method
 				
 				estat event, post	// Aggregate estimation like an event-study
 				
@@ -311,12 +321,12 @@ foreach ocupacion in $ocupaciones {
 	}
 	
 }
-*/
+
 
 ****************************************************************************
 **# 				5. Estimations until 2019 (pre covid)
 ****************************************************************************
-
+/*
 * PILA
 global outcomes sal_dias_cot_0 pila_salario_r_0 posgrado_salud
 
@@ -436,5 +446,5 @@ foreach ocupacion in $ocupaciones {
 	
 }
 
-
+*/
 log close

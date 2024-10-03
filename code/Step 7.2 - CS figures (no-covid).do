@@ -36,14 +36,10 @@ replace dist 		= dist * (-1) if (substr(var, 1, 2) == "tm")
 sort outcome occupation gender dist
 
 gen pila_outcome 	=  (outcome == "sal_dias_cot_0"			| outcome == "pila_salario_r_0" 		|				///
-						outcome == "p_cotizaciones_0"		| outcome == "pila_independientes"		|  				///
-						outcome == "posgrado_salud"			| outcome == "pila_salario_r_0_np"		| 				///
-						outcome == "pila_salario_r_max_0"	| outcome == "pila_salario_r_0_posg"	|				///
-						outcome == "pila_salario_r_0_npos"	)
+						outcome == "posgrado_salud"			)
 						
-gen rips_outcome	=  (outcome == "urg"					| outcome == "urg_np"					| 				///
-						outcome == "hosp"					| outcome == "hosp_np" 					|				///
-						outcome == "service_mental_forever"	| outcome == "pregnancy"				)
+gen rips_outcome	=  (outcome == "urg"					| outcome == "hosp"				    	| 				///
+						outcome == "service_mental_forever"	)
 						
 keep if pila_outcome == 1 | rips_outcome == 1
 
@@ -90,11 +86,11 @@ replace ci_upper = 0 if ci_upper == . & dist < 0
 gen dist2 = dist		
 
 * Relevant periods	
-drop if (dist < -2 & pila_outcome == 0)
+drop if (dist < -1 & pila_outcome == 0)
 drop if (dist < -4 & pila_outcome == 1)
 
-drop if (dist >  3 & pila_outcome == 0)
-drop if (dist >  8 & pila_outcome == 1)
+drop if (dist >  2 & pila_outcome == 0)
+drop if (dist >  6 & pila_outcome == 1)
 
 sort outcome occupation gender dist
 
@@ -264,7 +260,7 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P03" & outcome == "`outcome'"), mlc(gs9)     mfc(gs9)    m(S) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(medsmall)),		///
-				xlabel(-2(1)3, nogrid labsize(small))	 																							 	///
+				xlabel(-1(1)2, nogrid labsize(small))	 																							 	///
 				ylabel(`ylabel', angle(h) format(%10.3fc) labsize(small))																				///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -295,11 +291,11 @@ levelsof gender, local(genders)
 
 foreach outcome in `outcomes' {
 	
-	if "`outcome'" == "pila_salario_r_0" | "`outcome'" == "pila_salario_r_0_np"  | "`outcome'" == "pila_salario_r_max_0" {		
+	if "`outcome'" == "pila_salario_r_0" {		
 		local d = "7.0"
 		local e = "14.0"
 	}
-	else if "`outcome'" == "sal_dias_cot_0" | "`outcome'" == "sal_dias_cot_0_np" {	
+	else if "`outcome'" == "sal_dias_cot_0" {	
 		local d = "4.2"
 		local e = "14.0" 
 	}
@@ -351,7 +347,7 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P03" & outcome == "`outcome'"), mlc(gs9)     mfc(gs9)    m(S) msize(small))			///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)8, nogrid labsize(vsmall))																									///
+				xlabel(-4(1)6, nogrid labsize(vsmall))																									///
 				ylabel(`ylabel', angle(h) format(%`e'fc) labsize(small)) `yscale'																		///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -372,7 +368,7 @@ foreach outcome in `outcomes' {
 
 *Postgraduates
 levelsof gender, local(genders)
-local outcomes = "posgrado_salud pila_salario_r_0_posg pila_salario_r_0_npos"
+local outcomes = "posgrado_salud"
 
 foreach outcome in `outcomes' {
 
@@ -418,7 +414,7 @@ foreach outcome in `outcomes' {
 				(rspike ci_lower ci_upper dist 	if (occupation == "P09" & outcome == "`outcome'"), lcolor(gs1)  color(gs1)  lp(solid))					///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)8, nogrid labsize(vsmall))																									///
+				xlabel(-4(1)6, nogrid labsize(vsmall))																									///
 				ylabel(`ylabel', angle(h) format(%`e'fc) labsize(small)) `yscale'																		///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -518,7 +514,7 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P03" & outcome == "`outcome'"), mlc(gs9)     mfc(gs9)    m(S) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(medsmall))		///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(medsmall)),		///
-				xlabel(-2(1)3, nogrid labsize(small))	 																							 	///
+				xlabel(-1(1)2, nogrid labsize(small))	 																							 	///
 				ylabel(#10, angle(h) format(%9.3fc) labsize(small))																						///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -545,11 +541,11 @@ levelsof outcome if pila_outcome == 1, local(outcomes)
 
 foreach outcome in `outcomes' {
 	
-	if "`outcome'" == "pila_salario_r_0" | "`outcome'" == "pila_salario_r_0_np" | "`outcome'" == "pila_salario_r_max_0" {		
+	if "`outcome'" == "pila_salario_r_0"  {		
 		local d = "7.0"	
 		local e = "12.0"
 	} 
-	else if "`outcome'" == "sal_dias_cot_0" | "`outcome'" == "sal_dias_cot_0_np" {	
+	else if "`outcome'" == "sal_dias_cot_0" {	
 		local d = "4.2"
 		local e = "14.0"
 	}
@@ -579,7 +575,7 @@ foreach outcome in `outcomes' {
 				(scatter coef dist 				if (occupation == "P03" & outcome == "`outcome'"), mlc(gs9)     mfc(gs9)    m(S) msize(small))			///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)8, nogrid labsize(vsmall))																									///
+				xlabel(-4(1)6, nogrid labsize(vsmall))																									///
 				ylabel(#10, angle(h) format(%`e'fc) labsize(small))																						///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
@@ -619,7 +615,7 @@ foreach outcome in `outcomes' {
 				(rspike ci_lower ci_upper dist 	if (occupation == "P09" & outcome == "`outcome'"), lcolor(gs1)  color(gs1)  lp(solid))					///
 				(scatter coef dist 				if (occupation == "P07" & outcome == "`outcome'"), mlc(gs6)     mfc(gs6)    m(D) msize(small))			///
 				(scatter coef dist 				if (occupation == "P09" & outcome == "`outcome'"), mlc(gs1)     mfc(gs1)    m(T) msize(small)),			///
-				xlabel(-4(1)8, nogrid labsize(vsmall))																									///
+				xlabel(-4(1)6, nogrid labsize(vsmall))																									///
 				ylabel(#10, angle(h) format(%`e'fc) labsize(small))																						///
 				xline(-1, lcolor(gs10))																													///
 				yline(0, lcolor(gs10))																													///
