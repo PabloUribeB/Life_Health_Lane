@@ -128,7 +128,7 @@ foreach ocupacion in $profesiones {
     replace	edad                    = . if (year_grado != year_pila)
 
     bys personabasicaid: ereplace edad = min(edad)
-    drop year_pila year_birth
+    drop year_pila
 
     * Identify occupation
     gen rethus_codigoperfilpre1 = "`ocupacion'"
