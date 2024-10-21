@@ -1,0 +1,388 @@
+{smcl}
+{txt}{sf}{ul off}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Logs\Step_4.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}18 Oct 2024, 17:01:46
+{txt}
+{com}. 
+. 
+. ****************************************************************************
+. **#                             1. Process each occupation's dataset
+. ****************************************************************************
+. 
+. global profesiones P01 P03 P07 P09
+{txt}
+{com}. 
+. foreach ocupacion in $profesiones {c -(}
+{txt}  2{com}. 
+.     * Balancing with rethus sample
+.     use personabasicaid fechapregrado rethus_codigoperfilpre1 rethus_sexo   ///
+>         if rethus_codigoperfilpre1 == "`ocupacion'"                         ///
+>         using "${c -(}data{c )-}\master_rethus", clear
+{txt}  3{com}.         
+.     drop rethus_codigoperfilpre1
+{txt}  4{com}. 
+.     * Balance panel
+.     bys personabasicaid: egen temp = min(fechapregrado)
+{txt}  5{com}.     drop if temp == .
+{txt}  6{com}. 
+.     expand 176 // 176 months between 2008 and 2022m8
+{txt}  7{com}. 
+.     bys personabasicaid: gen fecha_pila = _n + 575
+{txt}  8{com}.     format fecha_pila %tm
+{txt}  9{com}. 
+.     merge 1:1 personabasicaid fecha_pila using                  ///
+>         "${c -(}data{c )-}\\`ocupacion'_PILA_monthly", keep(1 3)
+{txt} 10{com}. 
+.     gen formal = (_merge == 3)
+{txt} 11{com}.     drop _merge
+{txt} 12{com}.     replace pila_dependientes   = 0 if mi(pila_dependientes)
+{txt} 13{com}.     replace pila_independientes = 0 if mi(pila_independientes)
+{txt} 14{com}. 
+.     bys personabasicaid: ereplace fechapregrado = max(fechapregrado)
+{txt} 15{com}.     drop if mi(fechapregrado)
+{txt} 16{com}.     replace year_grado = year(dofm(fechapregrado))
+{txt} 17{com}. 
+.     * Additional outcomes
+.     gen     posgrado_salud          = (tipo_cotiz == 21)
+{txt} 18{com}.     replace posgrado_salud          = 0 if (fecha_pila < fechapregrado)
+{txt} 19{com}. 
+.     gen     month_posgrado          = mofd(rethus_fechagradopos1)                       
+{txt} 20{com}.     gen     posgrado_rethus         = 0
+{txt} 21{com}.     replace posgrado_rethus         = 1  if (month_posgrado == fecha_pila)
+{txt} 22{com}. 
+.     replace rethus_perfilpos1       = "" if (month_posgrado > fecha_pila)
+{txt} 23{com}.     replace rethus_codigoperfilpos1 = "" if (month_posgrado > fecha_pila)
+{txt} 24{com}. 
+.     gen auxiliar = substr(rethus_perfilpos1, 1, 1)
+{txt} 25{com}. 
+.     gen posgrado_clin = 1 if auxiliar == "M" & rethus_codigoperfilpre1 ==   ///
+>         "P07" & rethus_codigoperfilpos1 != "MA99"
+{txt} 26{com}.         
+.     gen posgrado_quir = 1 if auxiliar == "Q" & rethus_codigoperfilpre1 == "P07"
+{txt} 27{com}. 
+.     gen posgrado_otro = 1 if posgrado_clin != 1 & posgrado_quir != 1 &      ///
+>         !mi(rethus_perfilpos1)
+{txt} 28{com}. 
+.     drop auxiliar
+{txt} 29{com}. 
+.     gen     posgrado_rethus_acum    = 0
+{txt} 30{com}.     replace posgrado_rethus_acum    = 1 if (fecha_pila >= month_posgrado)
+{txt} 31{com}. 
+.     gen     pila_salario_r_0        = pila_salario_r
+{txt} 32{com}.     replace pila_salario_r_0        = 0 if mi(pila_salario_r)
+{txt} 33{com}. 
+.     gen     pila_salario_r_max_0    = pila_salario_max_r
+{txt} 34{com}.     replace pila_salario_r_max_0    = 0 if mi(pila_salario_max_r)       
+{txt} 35{com}. 
+.     gen     sal_dias_cot_0          = sal_dias_cot
+{txt} 36{com}.     replace sal_dias_cot_0          = 0 if mi(sal_dias_cot)
+{txt} 37{com}. 
+.     gen     nro_cotizaciones_0      = nro_cotizaciones
+{txt} 38{com}.     replace nro_cotizaciones_0      = 0 if mi(nro_cotizaciones) 
+{txt} 39{com}. 
+.     * Semiannualize
+.     replace fecha_pila              = hofd(dofm(fecha_pila))
+{txt} 40{com}.     replace fechapregrado           = hofd(dofm(fechapregrado))
+{txt} 41{com}. 
+.     format fecha_pila %th
+{txt} 42{com}.     format fechapregrado %th
+{txt} 43{com}. 
+.     * Birth
+.     bys personabasicaid: egen birth = mode(fechantomode), minmode missing
+{txt} 44{com}. 
+.     collapse (median) sal_dias_cot_0 pila_salario_r_0 pila_salario_r_max_0  ///
+>     (max) nro_cotizaciones_0 formal     incap_dias incap_gral licen_mat         ///
+>     posgrado_salud posgrado_rethus posgrado_rethus_acum posgrado_clin       ///
+>     posgrado_quir posgrado_otro pila_independientes pila_dependientes       ///
+>     (min) birth,                                                            ///
+>     by(personabasicaid fecha_pila fechapregrado year_grado rethus_sexo)
+{txt} 45{com}. 
+.     * Last variables
+.     gen         l_pila_salario_r_0      = log(pila_salario_r_0)
+{txt} 46{com}.     gen         posgrado_salud_term     = posgrado_salud
+{txt} 47{com}.     gen         p_cotizaciones_0        = (nro_cotizaciones_0 > 1)
+{txt} 48{com}. 
+.     * Age at the graduation date
+.     gen         year_pila               = yofd(dofh(fecha_pila))
+{txt} 49{com}.     gen         year_birth              = yofd(birth)
+{txt} 50{com}.     gen         edad                    = year_pila - year_birth
+{txt} 51{com}.     replace     edad                    = . if (year_grado != year_pila)
+{txt} 52{com}. 
+.     bys personabasicaid: ereplace edad = min(edad)
+{txt} 53{com}.     drop year_pila
+{txt} 54{com}. 
+.     * Identify occupation
+.     gen rethus_codigoperfilpre1 = "`ocupacion'"
+{txt} 55{com}. 
+.     tempfile    `ocupacion'
+{txt} 56{com}.     save        ``ocupacion'', replace
+{txt} 57{com}. 
+. {c )-}
+{txt}(115 missing values generated)
+(115 observations deleted)
+(4,924,850 observations created)
+{res}{txt}(label {bf:{txt}order5} already defined)
+
+{col 5}Result{col 33}Number of obs
+{col 5}{hline 41}
+{col 5}Not matched{col 30}{res}       2,076,238
+{txt}{col 9}from master{col 30}{res}       2,076,238{txt}  (_merge==1)
+{col 9}from using{col 30}{res}               0{txt}  (_merge==2)
+
+{col 5}Matched{col 30}{res}       2,876,754{txt}  (_merge==3)
+{col 5}{hline 41}
+(2,076,238 real changes made)
+(2,076,238 real changes made)
+(0 real changes made)
+(0 observations deleted)
+(2,076,238 real changes made)
+(61 real changes made)
+(4,936,032 missing values generated)
+(68 real changes made)
+(3,920 real changes made)
+(3,920 real changes made)
+(4,939,952 missing values generated)
+(4,952,992 missing values generated)
+(4,952,992 missing values generated)
+(4,939,952 missing values generated)
+(13,040 real changes made)
+(2,076,238 missing values generated)
+(2,076,238 real changes made)
+(2,076,902 missing values generated)
+(2,076,902 real changes made)
+(2,076,238 missing values generated)
+(2,076,238 real changes made)
+(2,076,238 missing values generated)
+(2,076,238 real changes made)
+(4,952,992 real changes made)
+(4,952,992 real changes made)
+{res}{txt}(335,275 missing values generated)
+(346,980 missing values generated)
+(346,980 missing values generated)
+(488,712 real changes made, 488,712 to missing)
+(715,740 missing values generated)
+(715740 missing values generated)
+(119,952 real changes made)
+{p 0 4 2}
+(file {bf}
+C:\Users\pmede1\AppData\Local\Temp\ST_13088_000001.tmp{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+C:\Users\pmede1\AppData\Local\Temp\ST_13088_000001.tmp{rm}
+saved
+as .dta format
+{p_end}
+(64 missing values generated)
+(64 observations deleted)
+(13,652,100 observations created)
+{res}{txt}(label {bf:{txt}order5} already defined)
+
+{col 5}Result{col 33}Number of obs
+{col 5}{hline 41}
+{col 5}Not matched{col 30}{res}       5,828,490
+{txt}{col 9}from master{col 30}{res}       5,828,490{txt}  (_merge==1)
+{col 9}from using{col 30}{res}               0{txt}  (_merge==2)
+
+{col 5}Matched{col 30}{res}       7,901,622{txt}  (_merge==3)
+{col 5}{hline 41}
+(5,828,490 real changes made)
+(5,828,490 real changes made)
+(0 real changes made)
+(0 observations deleted)
+(5,828,490 real changes made)
+(1,151 real changes made)
+(13,510,048 missing values generated)
+(1,124 real changes made)
+(70,862 real changes made)
+(70,862 real changes made)
+(13,580,910 missing values generated)
+(13,730,112 missing values generated)
+(13,730,112 missing values generated)
+(13,580,910 missing values generated)
+(149,202 real changes made)
+(5,828,490 missing values generated)
+(5,828,490 real changes made)
+(5,831,225 missing values generated)
+(5,831,225 real changes made)
+(5,828,490 missing values generated)
+(5,828,490 real changes made)
+(5,828,490 missing values generated)
+(5,828,490 real changes made)
+(13,730,112 real changes made)
+(13,729,936 real changes made)
+{res}{txt}(920,254 missing values generated)
+(1,071,600 missing values generated)
+(1,071,600 missing values generated)
+(1,234,048 real changes made, 1,234,048 to missing)
+(1,819,680 missing values generated)
+(1819680 missing values generated)
+(485,968 real changes made)
+{p 0 4 2}
+(file {bf}
+C:\Users\pmede1\AppData\Local\Temp\ST_13088_000002.tmp{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+C:\Users\pmede1\AppData\Local\Temp\ST_13088_000002.tmp{rm}
+saved
+as .dta format
+{p_end}
+(1,635 missing values generated)
+(1,635 observations deleted)
+(27,520,850 observations created)
+{res}{txt}(label {bf:{txt}order5} already defined)
+
+{col 5}Result{col 33}Number of obs
+{col 5}{hline 41}
+{col 5}Not matched{col 30}{res}      11,479,490
+{txt}{col 9}from master{col 30}{res}      11,479,490{txt}  (_merge==1)
+{col 9}from using{col 30}{res}               0{txt}  (_merge==2)
+
+{col 5}Matched{col 30}{res}      16,198,622{txt}  (_merge==3)
+{col 5}{hline 41}
+(11,479,490 real changes made)
+(11,479,490 real changes made)
+(0 real changes made)
+(0 observations deleted)
+(11,479,490 real changes made)
+(5,217 real changes made)
+(22,226,859 missing values generated)
+(15,959 real changes made)
+(1,335,561 real changes made)
+(1,335,561 real changes made)
+(23,562,420 missing values generated)
+(25,469,614 missing values generated)
+(26,095,520 missing values generated)
+(27,353,510 missing values generated)
+(4,115,692 real changes made)
+(11,479,490 missing values generated)
+(11,479,490 real changes made)
+(12,090,576 missing values generated)
+(12,090,576 real changes made)
+(11,479,491 missing values generated)
+(11,479,491 real changes made)
+(11,479,490 missing values generated)
+(11,479,490 real changes made)
+(27,678,112 real changes made)
+(27,657,344 real changes made)
+{res}{txt}(1,955,688 missing values generated)
+(2,270,220 missing values generated)
+(2,270,220 missing values generated)
+(2,396,720 real changes made, 2,396,720 to missing)
+(3,954,060 missing values generated)
+(3954060 missing values generated)
+(712,880 real changes made)
+{p 0 4 2}
+(file {bf}
+C:\Users\pmede1\AppData\Local\Temp\ST_13088_000003.tmp{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+C:\Users\pmede1\AppData\Local\Temp\ST_13088_000003.tmp{rm}
+saved
+as .dta format
+{p_end}
+(341 missing values generated)
+(341 observations deleted)
+(11,196,500 observations created)
+{res}{txt}(label {bf:{txt}order5} already defined)
+
+{col 5}Result{col 33}Number of obs
+{col 5}{hline 41}
+{col 5}Not matched{col 30}{res}       5,656,549
+{txt}{col 9}from master{col 30}{res}       5,656,549{txt}  (_merge==1)
+{col 9}from using{col 30}{res}               0{txt}  (_merge==2)
+
+{col 5}Matched{col 30}{res}       5,603,931{txt}  (_merge==3)
+{col 5}{hline 41}
+(5,656,549 real changes made)
+(5,656,549 real changes made)
+(0 real changes made)
+(0 observations deleted)
+(5,656,549 real changes made)
+(448 real changes made)
+(10,743,851 missing values generated)
+(1,939 real changes made)
+(135,532 real changes made)
+(135,532 real changes made)
+(10,879,383 missing values generated)
+(11,260,480 missing values generated)
+(11,260,480 missing values generated)
+(10,879,383 missing values generated)
+(381,097 real changes made)
+(5,656,549 missing values generated)
+(5,656,549 real changes made)
+(5,755,596 missing values generated)
+(5,755,596 real changes made)
+(5,656,550 missing values generated)
+(5,656,550 real changes made)
+(5,656,549 missing values generated)
+(5,656,549 real changes made)
+(11,260,480 real changes made)
+(11,253,968 real changes made)
+{res}{txt}(940,371 missing values generated)
+(1,049,160 missing values generated)
+(1,049,160 missing values generated)
+(858,454 real changes made, 858,454 to missing)
+(1,742,610 missing values generated)
+(1742610 missing values generated)
+(165,004 real changes made)
+{p 0 4 2}
+(file {bf}
+C:\Users\pmede1\AppData\Local\Temp\ST_13088_000004.tmp{rm}
+not found)
+{p_end}
+{p 0 4 2}
+file {bf}
+C:\Users\pmede1\AppData\Local\Temp\ST_13088_000004.tmp{rm}
+saved
+as .dta format
+{p_end}
+
+{com}. 
+. 
+. * Append the datasets and save the joint data
+. 
+. append using `P01' `P03' `P07'
+{txt}(label {bf:{txt}order5} already defined)
+(label {bf:{txt}order5} already defined)
+(label {bf:{txt}order5} already defined)
+
+{com}. compress
+  {txt}variable {bf}{res}fecha_pila{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}int{sf}
+  {txt}variable {bf}{res}nro_cotizaciones_0{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}formal{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}posgrado_salud{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}posgrado_rethus{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}posgrado_rethus_acum{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}posgrado_clin{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}posgrado_quir{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}posgrado_otro{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}posgrado_salud_term{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}p_cotizaciones_0{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+  {txt}variable {bf}{res}year_birth{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}int{sf}
+  {txt}variable {bf}{res}edad{sf}{txt} was {bf}{res}float{sf}{txt} now {bf}{res}byte{sf}
+{txt}  (363,409,560 bytes saved)
+
+{com}. save "${c -(}data{c )-}\Individual_balanced_all_PILA.dta", replace
+{txt}{p 0 4 2}
+file {bf}
+C:\Proyectos\Banrep research\Returns to Health Sector\Data\Individual_balanced_all_PILA.dta{rm}
+saved
+{p_end}
+
+{com}. 
+. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane\Logs\Step_4.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}18 Oct 2024, 17:09:36
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}
