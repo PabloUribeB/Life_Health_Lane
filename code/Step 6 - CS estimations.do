@@ -28,150 +28,163 @@ global ocupaciones P01 P03 P07 P09
 global genders all female male
 
 ****************************************************************************
-**# 					1. PILA estimation
+**#                         1. PILA estimation
 ****************************************************************************
 
 * Specify outcomes in global outcomes
 global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 			///
-				posgrado_rethus posgrado_rethus_acum p_cotizaciones_0 nro_cotizaciones_0 	///
-				pila_independientes pila_dependientes formal  								///
-				pila_salario_r_max_0 incap_dias incap_gral licen_mat
+                posgrado_rethus posgrado_rethus_acum p_cotizaciones_0 nro_cotizaciones_0 	///
+                pila_independientes pila_dependientes formal  								///
+                pila_salario_r_max_0 incap_dias incap_gral licen_mat
 
 local replace replace
 foreach ocupacion in $ocupaciones {
 
-	foreach outcome in $outcomes {
-		
-		foreach gender in $genders {
-	
-			use if inrange(year_grado,2011,2017) using "${data}\Individual_balanced_all_PILA", clear
-			drop if (rethus_sexo != 1 & rethus_sexo != 2)
-			
-			*mdesc fechapregrado
-			replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
-			
-			keep if rethus_codigoperfilpre1 == "`ocupacion'"
-			keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 year_birth
-			
-			if "`gender'" == "all" {
-				dis as err "All"
-			}
-			if "`gender'" == "female" {
-				dis as err "Women only"
-				keep if rethus_sexo == 2
-			}
-			if "`gender'" == "male" {
-				dis as err "Men only"
-				keep if rethus_sexo == 1
-			}
+    foreach outcome in $outcomes {
+        
+        foreach gender in $genders {
 
-			gen dist = fecha_pila - fechapregrado
-			qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
-			local mean = r(mean)
-			
-			dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
-			
-			csdid2 `outcome' i.year_birth, 	///
-			i(personabasicaid) 				/// panel id variable
-			t(fecha_pila) 					/// Time variable
-			gvar(fechapregrado) 			/// Treatment time
-			notyet 							/// Use not-yet treated as comparison
-			long2 							/// Calculate results relative to -1
-			asinr 							/// Calculate pre-treatment results as in R
-			method(drimp)					// Use doubly robust improved method
-			
-			estat event, post	// Aggregate estimation like an event-study
-			
-			* Save results in a dta file
-			regsave using "${output}\CS_results", `replace' ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
-			
-			csdid2 , clear
-			
-			local replace append
+            use if inrange(year_grado,2011,2017) using                  ///
+                "${data}\Individual_balanced_all_PILA", clear
+                
+            drop if (rethus_sexo != 1 & rethus_sexo != 2)
+            
+            *mdesc fechapregrado
+            replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
+            
+            keep if rethus_codigoperfilpre1 == "`ocupacion'"
+            
+            keep personabasicaid fecha_pila fechapregrado `outcome'     ///
+                 rethus_sexo rethus_codigoperfilpre1 year_birth
+            
+            if "`gender'" == "all" {
+                dis as err "All"
+            }
+            if "`gender'" == "female" {
+                dis as err "Women only"
+                keep if rethus_sexo == 2
+            }
+            if "`gender'" == "male" {
+                dis as err "Men only"
+                keep if rethus_sexo == 1
+            }
 
-		}
-		
-	}
-	
+            gen dist = fecha_pila - fechapregrado
+            qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
+            local mean = r(mean)
+            
+            dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
+            
+            csdid2 `outcome' i.year_birth, 	///
+            i(personabasicaid) 				/// panel id variable
+            t(fecha_pila) 					/// Time variable
+            gvar(fechapregrado) 			/// Treatment time
+            notyet 							/// Use not-yet treated as comparison
+            long2 							/// Calculate results relative to -1
+            asinr 							/// Calculate pre-treatment results as in R
+            method(drimp)					// Use doubly robust improved method
+            
+            estat event, post	// Aggregate estimation like an event-study
+            
+            * Save results in a dta file
+            regsave using "${output}\CS_results", `replace' ci level(95)    ///
+                    addlabel(outcome, `outcome', occupation, `ocupacion',   ///
+                    gender, `gender', mean, `mean')
+            
+            csdid2 , clear
+            
+            local replace append
+
+        }
+        
+    }
+
 }
 
 
 ****************************************************************************
-**# 					2. RIPS estimation
+**#                         2. RIPS estimation
 ****************************************************************************
 
 * Birth
-use if 		personabasicaid year_birth using "${data}\Individual_balanced_all_PILA", clear
-gsort 		personabasicaid year_birth
+use         personabasicaid year_birth using "${data}\Individual_balanced_all_PILA", clear
+gsort       personabasicaid year_birth
 gduplicates drop personabasicaid, force
-tempfile 	births
-save 		`births'
+tempfile    births
+save        `births'
 
 * Specify outcomes in global outcomes
 global outcomes diag_mental diag_mental2 service_mental service_mental2 ///
-				urg hosp urg_np hosp_np pregnancy service cons_mental 	///
-				cons_mental2 cons_mental3 cons_mental4 consul proce		///
-				service_mental_forever service_mental2_forever 			///
-				consul_mental_forever consul_mental2_forever
+                urg hosp urg_np hosp_np pregnancy service cons_mental 	///
+                cons_mental2 cons_mental3 cons_mental4 consul proce		///
+                service_mental_forever service_mental2_forever 			///
+                consul_mental_forever consul_mental2_forever
 			
 foreach ocupacion in $ocupaciones {
 
-	foreach outcome in $outcomes {
-		
-		foreach gender in $genders {
-	
-			use personabasicaid year_grado year_RIPS fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 if inrange(year_grado,2011,2017) & rethus_codigoperfilpre1 == "`ocupacion'" using "${data}\Individual_balanced_all_RIPS", clear
-			drop if (rethus_sexo != 1 & rethus_sexo != 2)
-			
-			* Merge birth year
-			merge m:1 personabasicaid using `births', keep(1 3) nogen
-			
-			*mdesc fechapregrado
-			replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
-			
-			if "`gender'" == "all" {
-				dis as err "All"
-			}
-			if "`gender'" == "female" {
-				dis as err "Women only"
-				keep if rethus_sexo == 2
-			}
-			if "`gender'" == "male" {
-				dis as err "Men only"
-				keep if rethus_sexo == 1
-			}
+    foreach outcome in $outcomes {
+        
+        foreach gender in $genders {
 
-			gen dist = year_RIPS - year_grado
-			qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
-			local mean = r(mean)			
-			
-			dis as err "Running event study for RIPS `ocupacion' in `outcome' for gender `gender'"	
-		
-			csdid2 `outcome' i.year_birth, 	///
-			i(personabasicaid) 				/// panel id variable
-			t(year_RIPS) 					/// Time variable
-			gvar(year_grado) 				/// Treatment time
-			notyet 							/// Use not-yet treated as comparison
-			long2 							/// Calculate results relative to -1
-			asinr 							/// Calculate pre-treatment results as in R
-			method(drimp)					// Use doubly robust improved method
-			
-			estat event, post 	// Aggregate estimation like an event-study
-			
-			* Save results in a dta file
-			regsave using "${output}\CS_results", append ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
-			
-			csdid2 , clear
-			
-		}
-		
-	}
-	
+            use personabasicaid year_grado year_RIPS fechapregrado      ///
+                `outcome' rethus_sexo rethus_codigoperfilpre1 using     ///
+                "${data}\Individual_balanced_all_RIPS", clear
+            
+            keep if inrange(year_grado,2011,2017) & rethus_codigoperfilpre1 == "`ocupacion'"
+            
+            drop if (rethus_sexo != 1 & rethus_sexo != 2)
+            
+            * Merge birth year
+            merge m:1 personabasicaid using `births', keep(1 3) nogen
+            
+            *mdesc fechapregrado
+            replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
+            
+            if "`gender'" == "all" {
+                dis as err "All"
+            }
+            if "`gender'" == "female" {
+                dis as err "Women only"
+                keep if rethus_sexo == 2
+            }
+            if "`gender'" == "male" {
+                dis as err "Men only"
+                keep if rethus_sexo == 1
+            }
+
+            gen dist = year_RIPS - year_grado
+            qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
+            local mean = r(mean)			
+            
+            dis as err "Running event study for RIPS `ocupacion' in `outcome' for gender `gender'"	
+        
+            csdid2 `outcome' i.year_birth, 	///
+            i(personabasicaid) 				/// panel id variable
+            t(year_RIPS) 					/// Time variable
+            gvar(year_grado) 				/// Treatment time
+            notyet 							/// Use not-yet treated as comparison
+            long2 							/// Calculate results relative to -1
+            asinr 							/// Calculate pre-treatment results as in R
+            method(drimp)					// Use doubly robust improved method
+            
+            estat event, post 	// Aggregate estimation like an event-study
+            
+            * Save results in a dta file
+            regsave using "${output}\CS_results", append ci level(95)   ///
+                addlabel(outcome, `outcome', occupation, `ocupacion',   ///
+                gender, `gender', mean, `mean')
+            
+            csdid2 , clear
+            
+        }
+        
+    }
+
 }
 
 
 ****************************************************************************
-**# 					3. Non-pregnancy outcomes for PILA
+**#                 3. Non-pregnancy outcomes for PILA
 ****************************************************************************
 
 use personabasicaid pregnancy using "${data}\Individual_balanced_all_RIPS", clear
@@ -189,66 +202,72 @@ global outcomes sal_dias_cot_0  pila_salario_r_0 p_cotizaciones_0 pila_independi
 
 foreach ocupacion in $ocupaciones {
 
-	foreach outcome in $outcomes {
-		
-		foreach gender in $genders {
-	
-			use if inrange(year_grado,2011,2017) using "${data}\Individual_balanced_all_PILA", clear
-			drop if (rethus_sexo != 1 & rethus_sexo != 2)
-			
-			merge m:1 personabasicaid using `ever_pregnant', keep(3) nogen
-			drop if ever_pregnant == 1
-			
-			*mdesc fechapregrado
-			replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
-			
-			keep if rethus_codigoperfilpre1 == "`ocupacion'"
-			keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 year_birth
-			
-			if "`gender'" == "all" {
-				dis as err "All"
-			}
-			if "`gender'" == "female" {
-				dis as err "Women only"
-				keep if rethus_sexo == 2
-			}
-			if "`gender'" == "male" {
-				dis as err "Men only"
-				keep if rethus_sexo == 1
-			}
+    foreach outcome in $outcomes {
+        
+        foreach gender in $genders {
 
-			gen dist = fecha_pila - fechapregrado
-			qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
-			local mean = r(mean)			
-			
-			dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
-			
-			csdid2 `outcome' i.year_birth,	///
-			i(personabasicaid) 				/// panel id variable
-			t(fecha_pila) 					/// Time variable
-			gvar(fechapregrado) 			/// Treatment time
-			notyet 							/// Use not-yet treated as comparison
-			long2 							/// Calculate results relative to -1
-			asinr 							/// Calculate pre-treatment results as in R
-			method(drimp)					// Use doubly robust improved method
-			
-			estat event, post	// Aggregate estimation like an event-study
-			
-			* Save results in a dta file
-			regsave using "${output}\CS_results", append ci level(95) addlabel(outcome, `outcome'_np, occupation, `ocupacion', gender, `gender', mean, `mean')
-			
-			csdid2 , clear
+            use if inrange(year_grado,2011,2017) using          ///
+                "${data}\Individual_balanced_all_PILA", clear
+                
+            drop if (rethus_sexo != 1 & rethus_sexo != 2)
+            
+            merge m:1 personabasicaid using `ever_pregnant', keep(3) nogen
+            drop if ever_pregnant == 1
+            
+            *mdesc fechapregrado
+            replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
+            
+            keep if rethus_codigoperfilpre1 == "`ocupacion'"
+            
+            keep personabasicaid fecha_pila fechapregrado `outcome'     ///
+                 rethus_sexo rethus_codigoperfilpre1 year_birth
+            
+            if "`gender'" == "all" {
+                dis as err "All"
+            }
+            if "`gender'" == "female" {
+                dis as err "Women only"
+                keep if rethus_sexo == 2
+            }
+            if "`gender'" == "male" {
+                dis as err "Men only"
+                keep if rethus_sexo == 1
+            }
 
-		}
-		
-	}
-	
+            gen dist = fecha_pila - fechapregrado
+            qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
+            local mean = r(mean)			
+            
+            dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
+            
+            csdid2 `outcome' i.year_birth,	///
+            i(personabasicaid) 				/// panel id variable
+            t(fecha_pila) 					/// Time variable
+            gvar(fechapregrado) 			/// Treatment time
+            notyet 							/// Use not-yet treated as comparison
+            long2 							/// Calculate results relative to -1
+            asinr 							/// Calculate pre-treatment results as in R
+            method(drimp)					// Use doubly robust improved method
+            
+            estat event, post	// Aggregate estimation like an event-study
+            
+            * Save results in a dta file
+            regsave using "${output}\CS_results", append ci level(95)           ///
+                    addlabel(outcome, `outcome'_np, occupation, `ocupacion',    ///
+                    gender, `gender', mean, `mean')
+            
+            csdid2 , clear
+
+        }
+        
+    }
+
 }
 
 
 
 ****************************************************************************
-**# 					4. Outcomes for specialists only
+**#                 4. Outcomes for specialists only
 ****************************************************************************
 
 * Specify outcomes in global outcomes
@@ -256,195 +275,77 @@ global outcomes sal_dias_cot_0  pila_salario_r_0 p_cotizaciones_0 pila_independi
 
 foreach ocupacion in $ocupaciones {
 
-	foreach outcome in $outcomes {
-		
-		foreach gender in $genders {
-			
-			foreach posgrado in posg npos {
+    foreach outcome in $outcomes {
+        
+        foreach gender in $genders {
+            
+            foreach posgrado in posg npos {
 
-				use if inrange(year_grado,2011,2017) using "${data}\Individual_balanced_all_PILA", clear
-				drop if (rethus_sexo != 1 & rethus_sexo != 2)
-				
-				*mdesc fechapregrado
-				replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
-				
-				keep if rethus_codigoperfilpre1 == "`ocupacion'"
-				keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 posgrado_salud year_birth
-				
-				if "`gender'" == "all" {
-					dis as err "All"
-				}
-				if "`gender'" == "female" {
-					dis as err "Women only"
-					keep if rethus_sexo == 2
-				}
-				if "`gender'" == "male" {
-					dis as err "Men only"
-					keep if rethus_sexo == 1
-				}
-				
-				bys personabasicaid: egen posg = max(posgrado_salud)
-				if "`posgrado'" == "posg" {
-					keep if posg == 1
-				}
-				if "`posgrado'" == "npos" {
-					keep if posg == 0
-				}
-				drop posg
+                use if inrange(year_grado,2011,2017) using          ///
+                    "${data}\Individual_balanced_all_PILA", clear
+                    
+                drop if (rethus_sexo != 1 & rethus_sexo != 2)
+                
+                *mdesc fechapregrado
+                replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
+                
+                keep if rethus_codigoperfilpre1 == "`ocupacion'"
+                
+                keep personabasicaid fecha_pila fechapregrado `outcome'     ///
+                    rethus_sexo rethus_codigoperfilpre1 posgrado_salud year_birth
+                
+                if "`gender'" == "all" {
+                    dis as err "All"
+                }
+                if "`gender'" == "female" {
+                    dis as err "Women only"
+                    keep if rethus_sexo == 2
+                }
+                if "`gender'" == "male" {
+                    dis as err "Men only"
+                    keep if rethus_sexo == 1
+                }
+                
+                bys personabasicaid: egen posg = max(posgrado_salud)
+                if "`posgrado'" == "posg" {
+                    keep if posg == 1
+                }
+                if "`posgrado'" == "npos" {
+                    keep if posg == 0
+                }
+                drop posg
 
-				gen dist = fecha_pila - fechapregrado
-				qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
-				local mean = r(mean)			
-				
-				dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
-				
-				csdid2 `outcome' i.year_birth,	///
-				i(personabasicaid) 				/// panel id variable
-				t(fecha_pila) 					/// Time variable
-				gvar(fechapregrado) 			/// Treatment time
-				notyet 							/// Use not-yet treated as comparison
-				long2 							/// Calculate results relative to -1
-				asinr 							/// Calculate pre-treatment results as in R
-				method(drimp)					// Use doubly robust improved method
-				
-				estat event, post	// Aggregate estimation like an event-study
-				
-				* Save results in a dta file
-				regsave using "${output}\CS_results", append ci level(95) addlabel(outcome, `outcome'_`posgrado', occupation, `ocupacion', gender, `gender', mean, `mean')
-				
-				csdid2 , clear
-				
-			}
+                gen dist = fecha_pila - fechapregrado
+                qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
+                local mean = r(mean)			
+                
+                dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
+                
+                csdid2 `outcome' i.year_birth,	///
+                i(personabasicaid) 				/// panel id variable
+                t(fecha_pila) 					/// Time variable
+                gvar(fechapregrado) 			/// Treatment time
+                notyet 							/// Use not-yet treated as comparison
+                long2 							/// Calculate results relative to -1
+                asinr 							/// Calculate pre-treatment results as in R
+                method(drimp)					// Use doubly robust improved method
+                
+                estat event, post	// Aggregate estimation like an event-study
+                
+                * Save results in a dta file
+                regsave using "${output}\CS_results", append ci level(95)   ///
+                        addlabel(outcome, `outcome'_`posgrado', occupation, ///
+                        `ocupacion', gender, `gender', mean, `mean')
+                
+                csdid2 , clear
+                
+            }
 
-		}
-		
-	}
-	
+        }
+        
+    }
+
 }
 
 
-****************************************************************************
-**# 				5. Estimations until 2019 (pre covid)
-****************************************************************************
-/*
-* PILA
-global outcomes sal_dias_cot_0 pila_salario_r_0 posgrado_salud
-
-local replace replace
-foreach ocupacion in $ocupaciones {
-
-	foreach outcome in $outcomes {
-		
-		foreach gender in $genders {
-	
-			use if inrange(year_grado,2011,2014) using "${data}\Individual_balanced_all_PILA", clear
-			drop if (rethus_sexo != 1 & rethus_sexo != 2)
-			
-			*mdesc fechapregrado
-			replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
-			
-			keep if rethus_codigoperfilpre1 == "`ocupacion'"
-			keep personabasicaid fecha_pila fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1
-			keep if fecha_pila < 120
-			
-			if "`gender'" == "all" {
-				dis as err "All"
-			}
-			if "`gender'" == "female" {
-				dis as err "Women only"
-				keep if rethus_sexo == 2
-			}
-			if "`gender'" == "male" {
-				dis as err "Men only"
-				keep if rethus_sexo == 1
-			}
-
-			gen dist = fecha_pila - fechapregrado
-			qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
-			local mean = r(mean)
-			
-			dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
-			
-			csdid2 `outcome',			///
-			i(personabasicaid) 			/// panel id variable
-			t(fecha_pila) 				/// Time variable
-			gvar(fechapregrado) 		/// Treatment time
-			notyet 						/// Use not-yet treated as comparison
-			long2 						/// Calculate results relative to -1
-			asinr 						/// Calculate pre-treatment results as in R
-			method(drimp)				// Use doubly robust improved method
-			
-			estat event, post	// Aggregate estimation like an event-study
-			
-			* Save results in a dta file
-			regsave using "${output}\CS_results_nocovid", `replace' ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
-			
-			csdid2 , clear
-			
-			local replace append
-
-		}
-		
-	}
-	
-}
-
-
-* RIPS
-global outcomes urg hosp service_mental_forever
-			
-foreach ocupacion in $ocupaciones {
-
-	foreach outcome in $outcomes {
-		
-		foreach gender in $genders {
-	
-			use personabasicaid year_grado year_RIPS fechapregrado `outcome' rethus_sexo rethus_codigoperfilpre1 if inrange(year_grado,2011,2014) & rethus_codigoperfilpre1 == "`ocupacion'" using "${data}\Individual_balanced_all_RIPS", clear
-			drop if (rethus_sexo != 1 & rethus_sexo != 2)
-			
-			*mdesc fechapregrado
-			replace fechapregrado = 0 if mi(fechapregrado) // Replace to zero if never treated for csdid
-			keep if year_RIPS < 2020
-			
-			if "`gender'" == "all" {
-				dis as err "All"
-			}
-			if "`gender'" == "female" {
-				dis as err "Women only"
-				keep if rethus_sexo == 2
-			}
-			if "`gender'" == "male" {
-				dis as err "Men only"
-				keep if rethus_sexo == 1
-			}
-
-			gen dist = year_RIPS - year_grado
-			qui sum `outcome' if (dist == -1 & rethus_codigoperfilpre1 == "`ocupacion'")
-			local mean = r(mean)			
-			
-			dis as err "Running event study for RIPS `ocupacion' in `outcome' for gender `gender'"	
-		
-			csdid2 `outcome', 			///
-			i(personabasicaid) 			/// panel id variable
-			t(year_RIPS) 				/// Time variable
-			gvar(year_grado) 			/// Treatment time
-			notyet 						/// Use not-yet treated as comparison
-			long2 						/// Calculate results relative to -1
-			asinr 						/// Calculate pre-treatment results as in R
-			method(drimp)				// Use doubly robust improved method
-			
-			estat event, post 	// Aggregate estimation like an event-study
-			
-			* Save results in a dta file
-			regsave using "${output}\CS_results_nocovid", append ci level(95) addlabel(outcome, `outcome', occupation, `ocupacion', gender, `gender', mean, `mean')
-			
-			csdid2 , clear
-			
-		}
-		
-	}
-	
-}
-
-*/
 log close
