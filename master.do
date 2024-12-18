@@ -46,11 +46,18 @@ if inlist("`c(username)'", "Pablo Uribe", "danie", "pu42") {
     local external = 1
     
 }
-else {
-    
-    global root	"Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
-    local external = 0
-    
+if "`c(username)'" == "cpossosu" {
+
+    global root	 "\\wmedesrv\GAMMA\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
+    local  external = 0
+
+}
+	
+else{
+
+    global root	 "Z:\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
+    local  external = 0
+
 }
 
 * Create folders if non-existent
@@ -76,16 +83,16 @@ global output   "${root}\Output"
 
 if `external' == 0 { // These only run at BanRep due to confidentiality
     
-    do "${do_files}\Step 1 - RIPS creation.do"
-    do "${do_files}\Step 2 - RIPS variables.do"
-    do "${do_files}\Step 3 - PILA creation and variables.do"
-    do "${do_files}\Step 4 - PILA append and balance.do"
-    do "${do_files}\Step 5 - Summary stats.do"
+    *do "${do_files}\Step 1 - RIPS creation.do"
+    *do "${do_files}\Step 2 - RIPS variables.do"
+    *do "${do_files}\Step 3 - PILA creation and variables.do"
+    *do "${do_files}\Step 4 - PILA append and balance.do"
+    *do "${do_files}\Step 5 - Summary stats.do"
     do "${do_files}\Step 6 - CS estimations.do"
     
 }
 
-* These can be run from any PC with access to /Output
+/* These can be run from any PC with access to /Output
 do "${do_files}\Step 7 - CS figures.do"
 do "${do_files}\Step 7.1 - CS figures relative.do"
 do "${do_files}\Step 7.2 - CS figures (no-covid).do"

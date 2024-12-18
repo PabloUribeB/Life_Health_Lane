@@ -32,10 +32,8 @@ global genders all female male
 ****************************************************************************
 
 * Specify outcomes in global outcomes
-global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0 l_pila_salario_r_0 			///
-                posgrado_rethus posgrado_rethus_acum p_cotizaciones_0 nro_cotizaciones_0 	///
-                pila_independientes pila_dependientes formal  								///
-                pila_salario_r_max_0 incap_dias incap_gral licen_mat
+global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0      ///
+                pila_salario_r_max_0
 
 local replace replace
 foreach ocupacion in $ocupaciones {
@@ -75,23 +73,20 @@ foreach ocupacion in $ocupaciones {
             
             dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
             
-            csdid2 `outcome' i.year_birth, 	///
-            i(personabasicaid) 				/// panel id variable
-            t(fecha_pila) 					/// Time variable
-            gvar(fechapregrado) 			/// Treatment time
-            notyet 							/// Use not-yet treated as comparison
-            long2 							/// Calculate results relative to -1
-            asinr 							/// Calculate pre-treatment results as in R
-            method(drimp)					// Use doubly robust improved method
-            
-            estat event, post	// Aggregate estimation like an event-study
+            csdid `outcome' i.year_birth,   ///
+            i(personabasicaid)              /// panel id variable
+            t(fecha_pila)                   /// Time variable
+            gvar(fechapregrado)             /// Treatment time
+            notyet                          /// Use not-yet treated as comparison
+            long2                           /// Calculate results relative to -1
+            asinr                           /// Calculate pre-treatment results as in R
+            method(drimp)                   /// Use doubly robust improved method
+            agg(event)                      //  Aggregate as event study
             
             * Save results in a dta file
             regsave using "${output}\CS_results", `replace' ci level(95)    ///
                     addlabel(outcome, `outcome', occupation, `ocupacion',   ///
                     gender, `gender', mean, `mean')
-            
-            csdid2 , clear
             
             local replace append
 
@@ -114,11 +109,7 @@ tempfile    births
 save        `births'
 
 * Specify outcomes in global outcomes
-global outcomes diag_mental diag_mental2 service_mental service_mental2 ///
-                urg hosp urg_np hosp_np pregnancy service cons_mental 	///
-                cons_mental2 cons_mental3 cons_mental4 consul proce		///
-                service_mental_forever service_mental2_forever 			///
-                consul_mental_forever consul_mental2_forever
+global outcomes urg hosp urg_np hosp_np pregnancy service_mental_forever
 			
 foreach ocupacion in $ocupaciones {
 
@@ -158,23 +149,20 @@ foreach ocupacion in $ocupaciones {
             
             dis as err "Running event study for RIPS `ocupacion' in `outcome' for gender `gender'"	
         
-            csdid2 `outcome' i.year_birth, 	///
-            i(personabasicaid) 				/// panel id variable
-            t(year_RIPS) 					/// Time variable
-            gvar(year_grado) 				/// Treatment time
-            notyet 							/// Use not-yet treated as comparison
-            long2 							/// Calculate results relative to -1
-            asinr 							/// Calculate pre-treatment results as in R
-            method(drimp)					// Use doubly robust improved method
-            
-            estat event, post 	// Aggregate estimation like an event-study
+            csdid `outcome' i.year_birth,   ///
+            i(personabasicaid)              /// panel id variable
+            t(year_RIPS)                    /// Time variable
+            gvar(year_grado)                /// Treatment time
+            notyet                          /// Use not-yet treated as comparison
+            long2                           /// Calculate results relative to -1
+            asinr                           /// Calculate pre-treatment results as in R
+            method(drimp)                   /// Use doubly robust improved method
+            agg(event)                      //  Aggregate as event study
             
             * Save results in a dta file
             regsave using "${output}\CS_results", append ci level(95)   ///
                 addlabel(outcome, `outcome', occupation, `ocupacion',   ///
                 gender, `gender', mean, `mean')
-            
-            csdid2 , clear
             
         }
         
@@ -198,7 +186,7 @@ tempfile ever_pregnant
 save `ever_pregnant'
 
 * Specify outcomes in global outcomes
-global outcomes sal_dias_cot_0  pila_salario_r_0 p_cotizaciones_0 pila_independientes 
+global outcomes pila_salario_r_0
 
 foreach ocupacion in $ocupaciones {
 
@@ -240,23 +228,20 @@ foreach ocupacion in $ocupaciones {
             
             dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
             
-            csdid2 `outcome' i.year_birth,	///
-            i(personabasicaid) 				/// panel id variable
-            t(fecha_pila) 					/// Time variable
-            gvar(fechapregrado) 			/// Treatment time
-            notyet 							/// Use not-yet treated as comparison
-            long2 							/// Calculate results relative to -1
-            asinr 							/// Calculate pre-treatment results as in R
-            method(drimp)					// Use doubly robust improved method
-            
-            estat event, post	// Aggregate estimation like an event-study
+            csdid `outcome' i.year_birth,   ///
+            i(personabasicaid)              /// panel id variable
+            t(fecha_pila)                   /// Time variable
+            gvar(fechapregrado)             /// Treatment time
+            notyet                          /// Use not-yet treated as comparison
+            long2                           /// Calculate results relative to -1
+            asinr                           /// Calculate pre-treatment results as in R
+            method(drimp)                   /// Use doubly robust improved method
+            agg(event)                      //  Aggregate as event study
             
             * Save results in a dta file
             regsave using "${output}\CS_results", append ci level(95)           ///
                     addlabel(outcome, `outcome'_np, occupation, `ocupacion',    ///
                     gender, `gender', mean, `mean')
-            
-            csdid2 , clear
 
         }
         
@@ -271,7 +256,7 @@ foreach ocupacion in $ocupaciones {
 ****************************************************************************
 
 * Specify outcomes in global outcomes
-global outcomes sal_dias_cot_0  pila_salario_r_0 p_cotizaciones_0 pila_independientes 
+global outcomes pila_salario_r_0 
 
 foreach ocupacion in $ocupaciones {
 
@@ -321,23 +306,20 @@ foreach ocupacion in $ocupaciones {
                 
                 dis as err "Running CS for PILA `ocupacion' in `outcome' for gender `gender'"			
                 
-                csdid2 `outcome' i.year_birth,	///
-                i(personabasicaid) 				/// panel id variable
-                t(fecha_pila) 					/// Time variable
-                gvar(fechapregrado) 			/// Treatment time
-                notyet 							/// Use not-yet treated as comparison
-                long2 							/// Calculate results relative to -1
-                asinr 							/// Calculate pre-treatment results as in R
-                method(drimp)					// Use doubly robust improved method
-                
-                estat event, post	// Aggregate estimation like an event-study
+                csdid `outcome' i.year_birth,   ///
+                i(personabasicaid)              /// panel id variable
+                t(fecha_pila)                   /// Time variable
+                gvar(fechapregrado)             /// Treatment time
+                notyet                          /// Use not-yet treated as comparison
+                long2                           /// Calculate results relative to -1
+                asinr                           /// Calculate pre-treatment results as in R
+                method(drimp)                   /// Use doubly robust improved method
+                agg(event)                      //  Aggregate as event study
                 
                 * Save results in a dta file
                 regsave using "${output}\CS_results", append ci level(95)   ///
                         addlabel(outcome, `outcome'_`posgrado', occupation, ///
                         `ocupacion', gender, `gender', mean, `mean')
-                
-                csdid2 , clear
                 
             }
 
