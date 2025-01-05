@@ -46,7 +46,7 @@ if inlist("`c(username)'", "Pablo Uribe", "danie", "pu42") {
     local external = 1
     
 }
-if "`c(username)'" == "cpossosu" {
+else if "`c(username)'" == "cpossosu" {
 
     global root	 "\\wmedesrv\GAMMA\Christian Posso\_banrep_research\proyectos\Life_Health_Lane"
     local  external = 0
