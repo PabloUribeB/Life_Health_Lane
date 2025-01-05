@@ -56,7 +56,7 @@ foreach ocupacion in $ocupaciones {
     foreach outcome in $outcomes {
 		
 	**# Temporal #3
-	if "`ocupacion'" == "P03" & "`outcome'" == posgrado_salud {
+	if "`ocupacion'" == "P03" & "`outcome'" == "posgrado_salud" {
 		global genders female male
 	}
 	else {
