@@ -39,7 +39,7 @@ global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0      ///
 global ocupaciones P03 P07 P09
 **				
 				
-local replace replace
+local replace append // Switch append back to replace
 foreach ocupacion in $ocupaciones {
 
 	**# Temporal #2
