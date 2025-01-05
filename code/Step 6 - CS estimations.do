@@ -35,10 +35,34 @@ global genders all female male
 global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0      ///
                 pila_salario_r_max_0
 
+**# Temporal #1
+global ocupaciones P03 P07 P09
+**				
+				
 local replace replace
 foreach ocupacion in $ocupaciones {
 
+	**# Temporal #2
+	if "`ocupacion'" == "P03" {
+		global outcomes posgrado_salud pila_salario_r_0      ///
+			pila_salario_r_max_0
+	}
+	else {
+		global outcomes sal_dias_cot_0 posgrado_salud pila_salario_r_0      ///
+               pila_salario_r_max_0
+	}
+	**
+		
     foreach outcome in $outcomes {
+		
+	**# Temporal #3
+	if "`ocupacion'" == "P03" & "`outcome'" == "posgrado_salud" {
+		global genders female male
+	}
+	else {
+		global genders all female male
+	}
+	**		
         
         foreach gender in $genders {
 
@@ -96,6 +120,8 @@ foreach ocupacion in $ocupaciones {
 
 }
 
+**# Temporal #4
+global ocupaciones P01 P03 P07 P09
 
 ****************************************************************************
 **#                         2. RIPS estimation
