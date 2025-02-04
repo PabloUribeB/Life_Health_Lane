@@ -79,9 +79,9 @@ foreach ocupacion in $ocupaciones {
             notyet                          /// Use not-yet treated as comparison
             long2                           /// Calculate results relative to -1
             asinr                           /// Calculate pre-treatment results as in R
-            method(drimp)                   //  Use doubly robust improved method
+            method(dripw)                   //  Use doubly robust improved method
             
-            estat event, post window(-4 9)
+            estat event, post
             
             * Save results in a dta file
             regsave using "${output}\CS_results", `replace' ci level(95)    ///
@@ -148,9 +148,9 @@ foreach ocupacion in $ocupaciones {
             notyet                          /// Use not-yet treated as comparison
             long2                           /// Calculate results relative to -1
             asinr                           /// Calculate pre-treatment results as in R
-            method(drimp)                   //  Use doubly robust improved method
+            method(dripw)                   //  Use doubly robust improved method
             
-            estat event, post window(-2 4)
+            estat event, post
             
             * Save results in a dta file
             regsave using "${output}\CS_results", append ci level(95)   ///
@@ -229,9 +229,9 @@ foreach ocupacion in $ocupaciones {
             notyet                          /// Use not-yet treated as comparison
             long2                           /// Calculate results relative to -1
             asinr                           /// Calculate pre-treatment results as in R
-            method(drimp)                   //  Use doubly robust improved method
+            method(dripw)                   //  Use doubly robust improved method
             
-            estat event, post window(-4 9)
+            estat event, post
             
             * Save results in a dta file
             regsave using "${output}\CS_results", append ci level(95)           ///
@@ -311,9 +311,9 @@ foreach ocupacion in $ocupaciones {
                 notyet                          /// Use not-yet treated as comparison
                 long2                           /// Calculate results relative to -1
                 asinr                           /// Calculate pre-treatment results as in R
-                method(drimp)                   //  Use doubly robust improved method
+                method(dripw)                   //  Use doubly robust improved method
                 
-                estat event, post window(-4 9)
+                estat event, post
                 
                 * Save results in a dta file
                 regsave using "${output}\CS_results", append ci level(95)   ///
