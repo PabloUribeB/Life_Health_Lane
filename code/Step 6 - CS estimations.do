@@ -52,7 +52,7 @@ foreach ocupacion in $ocupaciones {
             keep if rethus_codigoperfilpre1 == "`ocupacion'"
             
             keep personabasicaid fecha_pila fechapregrado `outcome'     ///
-                 rethus_sexo rethus_codigoperfilpre1 year_birth
+                 rethus_sexo rethus_codigoperfilpre1
             
             if "`gender'" == "all" {
                 dis as err "All"
@@ -81,7 +81,7 @@ foreach ocupacion in $ocupaciones {
             asinr                           /// Calculate pre-treatment results as in R
             method(dripw)                   //  Use doubly robust improved method
             
-            estat event, post
+            estat event, post window(-4 9)
             
             * Save results in a dta file
             regsave using "${output}\CS_results", `replace' ci level(95)    ///
@@ -150,7 +150,7 @@ foreach ocupacion in $ocupaciones {
             asinr                           /// Calculate pre-treatment results as in R
             method(dripw)                   //  Use doubly robust improved method
             
-            estat event, post
+            estat event, post window(-2 4)
             
             * Save results in a dta file
             regsave using "${output}\CS_results", append ci level(95)   ///
@@ -202,7 +202,7 @@ foreach ocupacion in $ocupaciones {
             keep if rethus_codigoperfilpre1 == "`ocupacion'"
             
             keep personabasicaid fecha_pila fechapregrado `outcome'     ///
-                 rethus_sexo rethus_codigoperfilpre1 year_birth
+                 rethus_sexo rethus_codigoperfilpre1
             
             if "`gender'" == "all" {
                 dis as err "All"
@@ -231,7 +231,7 @@ foreach ocupacion in $ocupaciones {
             asinr                           /// Calculate pre-treatment results as in R
             method(dripw)                   //  Use doubly robust improved method
             
-            estat event, post
+            estat event, post window(-4 9)
             
             * Save results in a dta file
             regsave using "${output}\CS_results", append ci level(95)           ///
@@ -275,7 +275,7 @@ foreach ocupacion in $ocupaciones {
                 keep if rethus_codigoperfilpre1 == "`ocupacion'"
                 
                 keep personabasicaid fecha_pila fechapregrado `outcome'     ///
-                    rethus_sexo rethus_codigoperfilpre1 posgrado_salud year_birth
+                    rethus_sexo rethus_codigoperfilpre1 posgrado_salud
                 
                 if "`gender'" == "all" {
                     dis as err "All"
@@ -313,7 +313,7 @@ foreach ocupacion in $ocupaciones {
                 asinr                           /// Calculate pre-treatment results as in R
                 method(dripw)                   //  Use doubly robust improved method
                 
-                estat event, post
+                estat event, post window(-4 9)
                 
                 * Save results in a dta file
                 regsave using "${output}\CS_results", append ci level(95)   ///
